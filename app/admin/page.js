@@ -58,9 +58,6 @@ const WheelCheatAdmin = () => {
   const handleCheatToggle = () => {
     const newCheatStatus = !cheatEnabled;
     setCheatEnabled(newCheatStatus);
-    // if (socket) {
-    //   socket.emit('cheatStatusChange', newCheatStatus);
-    // }
   };
 
   const addToWinningOrder = (segment) => {

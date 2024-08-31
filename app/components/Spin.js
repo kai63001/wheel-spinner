@@ -17,7 +17,6 @@ const Spin = ({
   const [isStarted, setIsStarted] = useState(false);
   const [isFinished, setFinished] = useState(false);
   const canvasRef = useRef(null);
-  const timerHandle = useRef(0);
   const idleIntervalRef = useRef(null);
 
   const [angleCurrent, setAngleCurrent] = useState(0);
@@ -25,22 +24,6 @@ const Spin = ({
   const centerX = 300;
   const centerY = 300;
   const [globalFontSize, setGlobalFontSize] = useState(40);
-
-  useEffect(() => {
-    fetchSegments();
-  }, []);
-
-  const fetchSegments = async () => {
-    socket.emit("getList");
-    socket.on("randomList", (segments) => {
-      setSegments(segments);
-      //   set textRandomListColorBase not random but index 0 1 2 3 from listColors by step by step
-      const textRandomListColorBase = segments.map((_, i) => {
-        return listColors[i % listColors.length];
-      });
-      setSegColors(textRandomListColorBase);
-    });
-  };
 
   const calculateGlobalFontSize = () => {
     const canvas = canvasRef.current;
@@ -67,16 +50,42 @@ const Spin = ({
       setGlobalFontSize(fontSize);
     }
   };
-
   useEffect(() => {
+    //
+    initData();
     wheelInit();
+    fetchSegments();
     startIdleSpin();
-    calculateGlobalFontSize();
 
     return () => {
-      clearInterval(idleIntervalRef.current);
-      clearInterval(timerHandle.current);
+      stopIdleSpin();
     };
+  }, []);
+
+  const fetchSegments = async () => {
+    socket.emit("getList");
+    socket.on("randomList", (segments) => {
+      setSegments(segments);
+      setSegColors(
+        segments.map((_, i) => {
+          return listColors[i % listColors.length];
+        })
+      );
+    });
+  };
+
+  const initData = () => {
+    var link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.type = "text/css";
+    link.href =
+      "https://fonts.googleapis.com/css?family=Quicksand&display=swap";
+    document.getElementsByTagName("head")[0].appendChild(link);
+  };
+
+  useEffect(() => {
+    calculateGlobalFontSize();
+    draw();
   }, [segments]);
 
   const wheelInit = () => {
@@ -86,15 +95,8 @@ const Spin = ({
 
   const initCanvas = () => {
     const canvas = canvasRef.current;
-    var link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.type = "text/css";
-    link.href =
-      "https://fonts.googleapis.com/css?family=Quicksand&display=swap";
-    document.getElementsByTagName("head")[0].appendChild(link);
-    if (canvas) {
-      canvas.addEventListener("click", spin);
-    }
+
+  
   };
 
   const startIdleSpin = () => {
@@ -253,11 +255,6 @@ const Spin = ({
     ctx.fill();
     ctx.stroke();
 
-    // if (isStarted) {
-    //   ctx.fillStyle = contrastColor || "white";
-    //   ctx.font = "bold 20px " + fontFamily;
-    //   ctx.fillText(currentSegment, centerX + size + 50, centerY);
-    // }
   };
 
   const draw = () => {
@@ -282,6 +279,7 @@ const Spin = ({
         id="canvas"
         width="700"
         height="700"
+        onClick={spin}
         style={{
           pointerEvents: isFinished && isOnlyOnce ? "none" : "auto",
           width: "100%",
