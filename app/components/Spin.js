@@ -2,14 +2,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import "../globals.css";
 import { socket } from "../socker";
+import { controllerStore } from "../store/controllerStore";
 
 const Spin = ({
-  winningSegment,
   primaryColor,
   contrastColor,
   isOnlyOnce = true,
   fontFamily = "Quicksand",
 }) => {
+  const { setSpining } = controllerStore();
   const [segments, setSegments] = useState([]);
   const [segColors, setSegColors] = useState([]);
   const listColors = ["#009925", "#D61024", "#EEB212", "#3369E8"];
@@ -53,7 +54,6 @@ const Spin = ({
   };
 
   useEffect(() => {
-    //
     initData();
     wheelInit();
     fetchSegments();
@@ -111,12 +111,7 @@ const Spin = ({
   }, [segments]);
 
   const wheelInit = () => {
-    initCanvas();
     draw();
-  };
-
-  const initCanvas = () => {
-    const canvas = canvasRef.current;
   };
 
   const startIdleSpin = () => {
@@ -135,6 +130,7 @@ const Spin = ({
   const spin = () => {
     if (isStarted) return;
     setIsStarted(true);
+    setSpining(true);
     stopIdleSpin();
     setAngleCurrent(0);
 
@@ -153,6 +149,7 @@ const Spin = ({
         clearInterval(spinInterval);
         setFinished(true);
         setIsStarted(false);
+        setSpining(false);
 
         // Ensure the final segment is correct
         const finalSegmentIndex = Math.floor(
@@ -164,7 +161,6 @@ const Spin = ({
         setCurrentSegment(finalSegment);
 
         if (finalSegment == winingOrderList()) {
-          console.log("You win!");
           //remove wining segment from list winingOrder
           const newWiningOrder = winningOrder.filter(
             (segment) => segment !== finalSegment

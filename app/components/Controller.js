@@ -10,8 +10,10 @@ import {
 } from "@mui/material";
 import { Shuffle as ShuffleIcon, Sort as SortIcon } from "@mui/icons-material";
 import { socket } from "../socker";
+import { controllerStore } from "../store/controllerStore";
 
 const EntriesComponent = () => {
+  const { spining } = controllerStore();
   const [entries, setEntries] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
   const [tabValue, setTabValue] = useState(0);
@@ -118,6 +120,7 @@ const EntriesComponent = () => {
             <TextField
               multiline
               value={entries}
+              disabled={spining}
               onChange={handleTextChange}
               variant="outlined"
               sx={{
