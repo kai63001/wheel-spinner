@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import "../globals.css";
-import { controllerStore } from "../store/controllerStore";
+import { socket } from "../socker";
 
 const Spin = ({
   winningSegment,
@@ -10,8 +10,9 @@ const Spin = ({
   isOnlyOnce = true,
   fontFamily = "Quicksand",
 }) => {
-  const { textRandomList: segments, textRandomListColorBase: segColors } =
-    controllerStore();
+  const [segments, setSegments] = useState([]);
+  const [segColors, setSegColors] = useState([]);
+  const listColors = ["#009925", "#D61024", "#EEB212", "#3369E8"];
   const [currentSegment, setCurrentSegment] = useState("");
   const [isStarted, setIsStarted] = useState(false);
   const [isFinished, setFinished] = useState(false);
@@ -25,6 +26,22 @@ const Spin = ({
   const centerY = 300;
   const [globalFontSize, setGlobalFontSize] = useState(40);
 
+  useEffect(() => {
+    fetchSegments();
+  }, []);
+
+  const fetchSegments = async () => {
+    socket.emit("getList");
+    socket.on("randomList", (segments) => {
+      setSegments(segments);
+      //   set textRandomListColorBase not random but index 0 1 2 3 from listColors by step by step
+      const textRandomListColorBase = segments.map((_, i) => {
+        return listColors[i % listColors.length];
+      });
+      setSegColors(textRandomListColorBase);
+    });
+  };
+
   const calculateGlobalFontSize = () => {
     const canvas = canvasRef.current;
     if (canvas) {
@@ -33,6 +50,7 @@ const Spin = ({
       let fontSize = 60;
 
       ctx.font = `bold ${fontSize}px ${fontFamily}`;
+      if (segments.length < 2) return;
 
       const longestText = segments.reduce((a, b) =>
         a.length > b.length ? a : b
@@ -113,12 +131,16 @@ const Spin = ({
         clearInterval(spinInterval);
         setFinished(true);
         setIsStarted(false);
-        
+
         // Ensure the final segment is correct
-        const finalSegmentIndex = Math.floor(segments.length - (targetAngle / (Math.PI * 2) * segments.length) % segments.length);
+        const finalSegmentIndex = Math.floor(
+          segments.length -
+            (((targetAngle / (Math.PI * 2)) * segments.length) %
+              segments.length)
+        );
         const finalSegment = segments[finalSegmentIndex];
         setCurrentSegment(finalSegment);
-        
+
         console.log("Finished spinning", finalSegment);
       } else {
         // Easing function for smooth deceleration
@@ -130,7 +152,8 @@ const Spin = ({
 
         // Calculate the current segment
         const segmentAngle = (Math.PI * 2) / segments.length;
-        const normalizedAngle = (newAngleCurrent % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+        const normalizedAngle =
+          ((newAngleCurrent % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
         const segmentIndex = Math.floor(normalizedAngle / segmentAngle);
         const newSegment = segments[segments.length - 1 - segmentIndex];
 
@@ -154,12 +177,11 @@ const Spin = ({
     }
 
     // Calculate the base angle to rotate so that the target segment is at the top
-   const baseAngle = (numberOfSegments - targetIndex - 0.5) * segmentAngle;
+    const baseAngle = (numberOfSegments - targetIndex - 0.5) * segmentAngle;
 
-  // Add a small random offset within the segment (between -0.2 and 0.2 of a segment)
-  // This is smaller than before to ensure we don't accidentally land on the wrong segment
-  const randomOffset = (Math.random() - 0.5) * 0.4 * segmentAngle;
-
+    // Add a small random offset within the segment (between -0.2 and 0.2 of a segment)
+    // This is smaller than before to ensure we don't accidentally land on the wrong segment
+    const randomOffset = (Math.random() - 0.5) * 0.4 * segmentAngle;
 
     // Add extra rotations for a more dramatic effect
     const extraRotations = Math.PI * 10; // 5 full rotations

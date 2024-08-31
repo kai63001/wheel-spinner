@@ -14,18 +14,31 @@ import { socket } from "../socker";
 
 const EntriesComponent = () => {
   const { textRandomList, setTextRandomList } = controllerStore();
-  const [entries, setEntries] = useState(textRandomList.join("\n") ?? '');
+  const [entries, setEntries] = useState(textRandomList.join("\n") ?? "");
   const [anchorEl, setAnchorEl] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [entryCount, setEntryCount] = useState(0);
 
   useEffect(() => {
     // Count non-empty lines
-    setEntryCount(
-      entries.split("\n").filter((line) => line.trim() !== "").length
-    );
+    if (entries) {
+      setEntryCount(
+        entries.split("\n").filter((line) => line.trim() !== "").length
+      );
+    }
   }, [entries]);
 
+  useEffect(() => {
+    fetchSegments();
+  }, []);
+
+  const fetchSegments = async () => {
+    socket.emit("getList");
+    socket.on("randomList", (segments) => {
+      console.log(segments);
+      setEntries(segments.join("\n"));
+    });
+  };
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -63,8 +76,6 @@ const EntriesComponent = () => {
           height: "90%",
         }}
       >
-        <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}></Box>
-
         {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         <FormControlLabel
           control={<Checkbox sx={{ color: 'white', '&.Mui-checked': { color: 'white' } }} />}

@@ -24,9 +24,15 @@ export default function Home() {
       socket.io.engine.on("upgrade", (transport) => {
         setTransport(transport.name);
       });
-
-      //init data
-      socket.emit("updateEntries", textRandomList);
+      socket.emit("getList");
+      socket.on("randomList", (segments) => {
+        if (segments) {
+          setTextRandomList(segments);
+        } else {
+          //init data
+          socket.emit("updateEntries", textRandomList);
+        }
+      });
     }
 
     function onDisconnect() {
