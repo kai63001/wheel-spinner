@@ -136,7 +136,7 @@ const Spin = ({
     stopIdleSpin();
     setAngleCurrent(0);
 
-    const totalDuration = 5000; // Total time the spin should take
+    const totalDuration = 2000; // Total time the spin should take
     const startTime = new Date().getTime();
 
     const targetAngle = getTargetAngle();

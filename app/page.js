@@ -62,7 +62,6 @@ export default function Home() {
               primaryColor="white"
               primaryColoraround="#ffffffb4"
               contrastColor="white"
-              // winningSegment="Alex"
               isOnlyOnce={false}
               upDuration={5}
               downDuration={100}

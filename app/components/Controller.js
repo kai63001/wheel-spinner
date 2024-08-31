@@ -20,7 +20,6 @@ const EntriesComponent = () => {
   const { spining } = controllerStore();
   const [entries, setEntries] = useState("");
   const [result, setResult] = useState("");
-  const [anchorEl, setAnchorEl] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [entryCount, setEntryCount] = useState(0);
   const [resultCount, setResultCount] = useState(0);
@@ -52,10 +51,6 @@ const EntriesComponent = () => {
       console.log("resutl", res);
       setResult(res.join("\n"));
     });
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
   };
 
   const handleTabChange = (event, newValue) => {
