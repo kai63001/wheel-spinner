@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import "../globals.css";
 import { socket } from "../socker";
 import { controllerStore } from "../store/controllerStore";
+import WinnerPopup from "./Wining";
 
 const Spin = ({
   primaryColor,
@@ -20,6 +21,7 @@ const Spin = ({
   const canvasRef = useRef(null);
   const idleIntervalRef = useRef(null);
   const [winningOrder, setWinningOrder] = useState([]);
+  const [showWinnerPopup, setShowWinnerPopup] = useState(false);
 
   const [angleCurrent, setAngleCurrent] = useState(0);
   const size = 300;
@@ -170,6 +172,8 @@ const Spin = ({
         }
 
         console.log("Finished spinning", finalSegment);
+        setShowWinnerPopup(true);
+        socket.emit("addResult", finalSegment);
       } else {
         // Easing function for smooth deceleration
         const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
@@ -292,6 +296,19 @@ const Spin = ({
     }
   };
 
+  const handleClosePopup = () => {
+    setShowWinnerPopup(false);
+  };
+
+  const handleRemoveWinner = () => {
+    const newSegments = segments.filter(
+      (segment) => segment !== currentSegment
+    );
+    setSegments(newSegments);
+    socket.emit("updateEntries", newSegments);
+    setShowWinnerPopup(false);
+  };
+
   useEffect(() => {
     draw();
   }, [angleCurrent, currentSegment]);
@@ -310,6 +327,13 @@ const Spin = ({
           width: "100%",
         }}
       />
+      {showWinnerPopup && (
+        <WinnerPopup
+          winner={currentSegment}
+          onClose={handleClosePopup}
+          onRemove={handleRemoveWinner}
+        />
+      )}
     </div>
   );
 };

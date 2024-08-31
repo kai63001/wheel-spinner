@@ -9,6 +9,7 @@ const app = next({ dev, port });
 const handler = app.getRequestHandler();
 let list = ["Alex", "Jon", "Doe", "Jane", "Alice", "Bob", "Charlie"];
 let winningOrder = [];
+let result = [];
 
 app.prepare().then(() => {
   const httpServer = createServer(handler);
@@ -24,11 +25,23 @@ app.prepare().then(() => {
     socket.on("getList", () => {
       io.emit("randomList", list);
       io.emit("winningOrder", winningOrder);
+      io.emit("result", result);
     });
 
     socket.on("setWinningOrder", (order) => {
       winningOrder = order;
       io.emit("winningOrder", winningOrder);
+    });
+
+    socket.on("addResult", (res) => {
+      result.push(res);
+      console.log(result);
+      io.emit("result", result);
+    });
+
+    socket.on("setResult", (res) => {
+      result = res;
+      io.emit("result", result);
     });
   });
 
