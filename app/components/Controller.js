@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { Shuffle as ShuffleIcon, Sort as SortIcon } from "@mui/icons-material";
 import { controllerStore } from "../store/controllerStore";
+import { socket } from "../socker";
 
 const EntriesComponent = () => {
   const { textRandomList, setTextRandomList } = controllerStore();
@@ -25,9 +26,6 @@ const EntriesComponent = () => {
     );
   }, [entries]);
 
-  const handleAddImageClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -40,7 +38,7 @@ const EntriesComponent = () => {
   const handleTextChange = (event) => {
     setEntries(event.target.value);
     const array = event.target.value.split("\n");
-    console.log(array);
+    socket.emit("updateEntries", array);
     setTextRandomList(array);
   };
 
