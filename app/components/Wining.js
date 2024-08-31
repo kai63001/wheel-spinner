@@ -1,11 +1,16 @@
 import React from "react";
 
-const WinnerPopup = ({ winner, onClose, onRemove }) => {
+const WinnerPopup = ({ color, winner, onClose, onRemove }) => {
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
         <div className="w-[700px]">
-          <div className="bg-[#D60D24] text-white text-xl font-medium py-5 px-4 rounded-t-lg">
+          <div
+            className=" text-white text-xl font-medium py-5 px-4 rounded-t-lg"
+            style={{
+              background: color,
+            }}
+          >
             We have a winner!
             <button onClick={onClose} className="float-right">
               &times;

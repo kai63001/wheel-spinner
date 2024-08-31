@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "../globals.css";
 import { socket } from "../socker";
 import { controllerStore } from "../store/controllerStore";
@@ -13,6 +13,8 @@ const Spin = ({
 }) => {
   const { setSpining, duration } = controllerStore();
   const [segments, setSegments] = useState([]);
+  const audioRef = useRef(null);
+  const audioEndRef = useRef(null);
   const [segColors, setSegColors] = useState([]);
   const listColors = ["#009925", "#D61024", "#EEB212", "#3369E8"];
   const [currentSegment, setCurrentSegment] = useState("");
@@ -22,12 +24,28 @@ const Spin = ({
   const idleIntervalRef = useRef(null);
   const [winningOrder, setWinningOrder] = useState([]);
   const [showWinnerPopup, setShowWinnerPopup] = useState(false);
+  const lastPlayedTime = useRef(0);
 
   const [angleCurrent, setAngleCurrent] = useState(0);
   const size = 300;
   const centerX = 300;
   const centerY = 300;
   const [globalFontSize, setGlobalFontSize] = useState(40);
+
+  const playTickSound = () => {
+    audioRef.current.currentTime = 0;
+    audioRef.current.play();
+  };
+
+  const playEndSound = () => {
+    audioEndRef.current.currentTime = 0;
+    audioEndRef.current.play();
+  };
+
+  const getCurrentColorBySegment = (segment) => {
+    const index = segments.indexOf(segment);
+    return segColors[index];
+  };
 
   const calculateGlobalFontSize = () => {
     const canvas = canvasRef.current;
@@ -60,6 +78,9 @@ const Spin = ({
     wheelInit();
     fetchSegments();
     startIdleSpin();
+
+    audioRef.current = new Audio("/ding.mp3");
+    audioEndRef.current = new Audio("/end.mp3");
 
     return () => {
       stopIdleSpin();
@@ -129,7 +150,7 @@ const Spin = ({
     clearInterval(idleIntervalRef.current);
   };
 
-  const spin = useCallback(() => {
+  const spin = () => {
     if (isStarted) return;
     setIsStarted(true);
     setSpining(true);
@@ -138,8 +159,11 @@ const Spin = ({
 
     const totalDuration = duration * 1000;
     const startTime = new Date().getTime();
+
     const targetAngle = getTargetAngle();
-    const totalRotations = 10 + segments.length / 2; // Adjust total rotations based on segment count
+    const totalRotations = 10 + segments.length / 2; // Adjust as needed
+
+    let lastSegment = "";
 
     const spinInterval = setInterval(() => {
       const now = new Date().getTime();
@@ -153,6 +177,7 @@ const Spin = ({
         setIsStarted(false);
         setSpining(false);
 
+        // Ensure the final segment is correct
         const finalSegmentIndex = Math.floor(
           segments.length -
             (((targetAngle / (Math.PI * 2)) * segments.length) %
@@ -161,7 +186,8 @@ const Spin = ({
         const finalSegment = segments[finalSegmentIndex];
         setCurrentSegment(finalSegment);
 
-        if (finalSegment === winingOrderList()) {
+        if (finalSegment == winingOrderList()) {
+          //remove wining segment from list winingOrder
           const newWiningOrder = winningOrder.filter(
             (segment) => segment !== finalSegment
           );
@@ -172,34 +198,45 @@ const Spin = ({
         console.log("Finished spinning", finalSegment);
         setShowWinnerPopup(true);
         socket.emit("addResult", finalSegment);
+        playEndSound();
       } else {
+        const customEasing = (t) => {
+          if (t < 0.5) {
+            return 2 * t * (duration / 5);
+          } else {
+            return 1 - Math.pow(-2 * t + 2, 2) / 2;
+          }
+        };
         const easedProgress = customEasing(progress);
-        const currentRotation = easedProgress * totalRotations;
-        const newAngleCurrent = (currentRotation * Math.PI * 2 + targetAngle) % (Math.PI * 2);
+        const newAngleCurrent = targetAngle * easedProgress;
         setAngleCurrent(newAngleCurrent);
 
+        // Calculate the current segment
         const segmentAngle = (Math.PI * 2) / segments.length;
-        const normalizedAngle = (newAngleCurrent + Math.PI * 2) % (Math.PI * 2);
+        const normalizedAngle =
+          ((newAngleCurrent % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
         const segmentIndex = Math.floor(normalizedAngle / segmentAngle);
         const newSegment = segments[segments.length - 1 - segmentIndex];
 
+        // if (newSegment !== currentSegment) {
+        //   playTickSound();
+        // }
+        if (newSegment !== lastSegment) {
+          playTickSound();
+          lastSegment = newSegment;
+        }
+        // lastSegment = newSegment;
+
+        // if (newSegment !== lastSegment) {
+        //   playTickSound();
+        //   lastSegment = newSegment;
+        // }
         setCurrentSegment(newSegment);
       }
-    }, 16); // Aim for 60 FPS
-  }, [isStarted, segments, duration, winningOrder, winingOrderList]);
-
-  const customEasing = (t) => {
-    // Combine a quick start with a smooth end
-    if (t < 0.5) {
-      // Accelerate quickly at the start
-      return (2 * t) * (duration / 10);
-    } else {
-      // Decelerate smoothly at the end
-      return 1 - Math.pow(-2 * t + 2, 2) / 2;
-    }
+    }, 20);
   };
 
-  const getTargetAngle = useCallback(() => {
+  const getTargetAngle = () => {
     const numberOfSegments = segments.length;
     const segmentAngle = (Math.PI * 2) / numberOfSegments;
 
@@ -214,10 +251,14 @@ const Spin = ({
     }
 
     const baseAngle = (numberOfSegments - targetIndex - 0.5) * segmentAngle;
-    const randomOffset = (Math.random() - 0.5) * 0.4 * segmentAngle;
 
-    return baseAngle + randomOffset;
-  }, [segments, winingOrderList]);
+    const randomOffset = (Math.random() - 0.5) * 0.8 * segmentAngle;
+
+    // Add extra rotations for a more dramatic effect
+    const extraRotations = Math.PI * 10; // 5 full rotations
+
+    return baseAngle + randomOffset + extraRotations;
+  };
 
   const drawSegment = (ctx, key, lastAngle, angle) => {
     const value = segments[key];
@@ -232,8 +273,9 @@ const Spin = ({
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate((lastAngle + angle) / 2);
-    ctx.fillStyle = contrastColor || "white";
-
+    ctx.fillStyle = ["#009925", "#EEB212"].includes(segColors[key])
+      ? "black"
+      : "white";
     ctx.font = `bold ${globalFontSize}px ${fontFamily}`;
     //elipsis
     ctx.fillText(
@@ -327,6 +369,7 @@ const Spin = ({
       />
       {showWinnerPopup && (
         <WinnerPopup
+          color={getCurrentColorBySegment(currentSegment)}
           winner={currentSegment}
           onClose={handleClosePopup}
           onRemove={handleRemoveWinner}

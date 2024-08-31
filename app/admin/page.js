@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Typography, 
-  List, 
-  ListItem, 
+import React, { useState, useEffect } from "react";
+import {
+  Container,
+  Typography,
+  List,
+  ListItem,
   ListItemText,
   Switch,
   FormControlLabel,
@@ -14,46 +14,109 @@ import {
   CssBaseline,
   Button,
   IconButton,
+  TextField,
   Paper,
-  Grid
-} from '@mui/material';
-import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import {socket} from '../socker';
-
+  Alert,
+  Grid,
+} from "@mui/material";
+import {
+  Add as AddIcon,
+  Remove as RemoveIcon,
+  Check as CheckIcon,
+} from "@mui/icons-material";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { socket } from "../socker";
 
 const darkTheme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: "dark",
     background: {
-      default: '#000000',
-      paper: '#121212',
+      default: "#000000",
+      paper: "#121212",
     },
     primary: {
-      main: '#90caf9',
+      main: "#90caf9",
     },
     secondary: {
-      main: '#f48fb1',
+      main: "#f48fb1",
     },
   },
 });
 
+const WheelPasswordAlert = ({
+  darkTheme,
+  passwordData,
+  handleTextChange,
+  checkPassword,
+}) => {
+  return (
+    <ThemeProvider theme={darkTheme}>
+      <CssBaseline />
+      <Container maxWidth="md" className="p-4">
+        <Typography variant="h4" className="mb-4">
+          Wheel Cheat Admin
+        </Typography>
+
+        <Typography variant="h6" className="mb-4">
+          Enter Password to Access
+        </Typography>
+
+        <TextField
+          label="Password"
+          variant="outlined"
+          fullWidth
+          className="mb-4"
+          name="password"
+          value={passwordData}
+          type="password"
+          onChange={handleTextChange}
+        />
+
+        <Button
+          variant="contained"
+          onClick={checkPassword}
+          color="primary"
+          fullWidth
+        >
+          Enter
+        </Button>
+      </Container>
+    </ThemeProvider>
+  );
+};
+
 const WheelCheatAdmin = () => {
+  const [open, setOpen] = React.useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [passwordData, setPasswordData] = useState("");
+
   const [segments, setSegments] = useState([]);
   const [winningOrder, setWinningOrder] = useState([]);
   const [cheatEnabled, setCheatEnabled] = useState(false);
+
+  const checkPassword = () => {
+    const passwordAdmin = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "@dmin";
+    if (passwordData === passwordAdmin) {
+      setIsAdmin(true);
+    }
+  };
 
   useEffect(() => {
     fetchSegments();
   }, []);
 
+  const handleTextChange = (event) => {
+    const value = event.target.value;
+    setPasswordData(value);
+  };
+
   const fetchSegments = async () => {
-    socket.emit('getList');
-    socket.on('randomList', (segments) => {
-        setSegments(segments);
+    socket.emit("getList");
+    socket.on("randomList", (segments) => {
+      setSegments(segments);
     });
-    socket.on('winningOrder', (order) => {
-        setWinningOrder(order);
+    socket.on("winningOrder", (order) => {
+      setWinningOrder(order);
     });
   };
 
@@ -75,26 +138,48 @@ const WheelCheatAdmin = () => {
 
   const handleSetWinningOrder = () => {
     if (socket) {
-      socket.emit('setWinningOrder', winningOrder);
+      socket.emit("setWinningOrder", winningOrder);
+      setOpen(true);
+      setTimeout(() => {
+        setOpen(false);
+      }, 3000);
+      setCheatEnabled(false);
     }
   };
+
+  if (!isAdmin) {
+    return (
+      <WheelPasswordAlert
+        darkTheme={darkTheme}
+        passwordData={passwordData}
+        handleTextChange={handleTextChange}
+        checkPassword={checkPassword}
+      />
+    );
+  }
 
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <Container maxWidth="md" className="p-4">
-        <Typography variant="h4" className="mb-4">Wheel Cheat Admin</Typography>
-        
+        <Typography variant="h4" className="mb-4">
+          Wheel Cheat Admin
+        </Typography>
+
         <FormControlLabel
-          control={<Switch checked={cheatEnabled} onChange={handleCheatToggle} />}
+          control={
+            <Switch checked={cheatEnabled} onChange={handleCheatToggle} />
+          }
           label="Enable Cheat"
           className="mb-4"
         />
-        
+
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
             <Paper className="p-4">
-              <Typography variant="h6" className="mb-2">Segments</Typography>
+              <Typography variant="h6" className="mb-2">
+                Segments
+              </Typography>
               <List>
                 {segments.map((segment, index) => (
                   <ListItem key={index}>
@@ -109,13 +194,19 @@ const WheelCheatAdmin = () => {
           </Grid>
           <Grid item xs={12} md={6}>
             <Paper className="p-4">
-              <Typography variant="h6" className="mb-2">Winning Order</Typography>
-              <DragDropContext >
+              <Typography variant="h6" className="mb-2">
+                Winning Order
+              </Typography>
+              <DragDropContext>
                 <Droppable droppableId="winningOrder">
                   {(provided) => (
                     <List {...provided.droppableProps} ref={provided.innerRef}>
                       {winningOrder.map((segment, index) => (
-                        <Draggable key={segment} draggableId={segment} index={index}>
+                        <Draggable
+                          key={segment}
+                          draggableId={segment}
+                          index={index}
+                        >
                           {(provided) => (
                             <ListItem
                               ref={provided.innerRef}
@@ -123,8 +214,12 @@ const WheelCheatAdmin = () => {
                               {...provided.dragHandleProps}
                               className="mb-2 bg-gray-800"
                             >
-                              <ListItemText primary={`${index + 1}. ${segment}`} />
-                              <IconButton onClick={() => removeFromWinningOrder(index)}>
+                              <ListItemText
+                                primary={`${index + 1}. ${segment}`}
+                              />
+                              <IconButton
+                                onClick={() => removeFromWinningOrder(index)}
+                              >
                                 <RemoveIcon />
                               </IconButton>
                             </ListItem>
@@ -139,17 +234,23 @@ const WheelCheatAdmin = () => {
             </Paper>
           </Grid>
         </Grid>
-        
-        <Button 
-          variant="contained" 
-          color="primary" 
+
+        <Button
+          variant="contained"
+          color="primary"
           onClick={handleSetWinningOrder}
           fullWidth
-          className="mt-4"
+          className="mt-10"
           disabled={!cheatEnabled || winningOrder.length === 0}
         >
           Set Winning Order
         </Button>
+
+        {open && (
+          <Alert icon={<CheckIcon fontSize="inherit" />} severity="success">
+            Update Cheat Successful
+          </Alert>
+        )}
       </Container>
     </ThemeProvider>
   );
