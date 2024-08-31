@@ -50,8 +50,10 @@ const WheelCheatAdmin = () => {
   const fetchSegments = async () => {
     socket.emit('getList');
     socket.on('randomList', (segments) => {
-        console.log(segments);
         setSegments(segments);
+    });
+    socket.on('winningOrder', (order) => {
+        setWinningOrder(order);
     });
   };
 

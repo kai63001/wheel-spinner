@@ -9,12 +9,10 @@ import {
   Tab,
 } from "@mui/material";
 import { Shuffle as ShuffleIcon, Sort as SortIcon } from "@mui/icons-material";
-import { controllerStore } from "../store/controllerStore";
 import { socket } from "../socker";
 
 const EntriesComponent = () => {
-  const { textRandomList, setTextRandomList } = controllerStore();
-  const [entries, setEntries] = useState(textRandomList.join("\n") ?? "");
+  const [entries, setEntries] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [entryCount, setEntryCount] = useState(0);
@@ -23,7 +21,7 @@ const EntriesComponent = () => {
     // Count non-empty lines
     if (entries) {
       setEntryCount(
-        entries.split("\n").filter((line) => line.trim() !== "").length
+        entries?.split("\n").filter((line) => line.trim() !== "").length
       );
     }
   }, [entries]);
@@ -35,7 +33,6 @@ const EntriesComponent = () => {
   const fetchSegments = async () => {
     socket.emit("getList");
     socket.on("randomList", (segments) => {
-      console.log(segments);
       setEntries(segments.join("\n"));
     });
   };
@@ -52,7 +49,6 @@ const EntriesComponent = () => {
     setEntries(event.target.value);
     const array = event.target.value.split("\n");
     socket.emit("updateEntries", array);
-    setTextRandomList(array);
   };
 
   return (

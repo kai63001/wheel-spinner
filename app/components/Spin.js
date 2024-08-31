@@ -18,6 +18,7 @@ const Spin = ({
   const [isFinished, setFinished] = useState(false);
   const canvasRef = useRef(null);
   const idleIntervalRef = useRef(null);
+  const [winningOrder, setWinningOrder] = useState([]);
 
   const [angleCurrent, setAngleCurrent] = useState(0);
   const size = 300;
@@ -50,6 +51,7 @@ const Spin = ({
       setGlobalFontSize(fontSize);
     }
   };
+
   useEffect(() => {
     //
     initData();
@@ -72,6 +74,26 @@ const Spin = ({
         })
       );
     });
+    socket.on("winningOrder", (order) => {
+      setWinningOrder(order);
+    });
+  };
+
+  const winingOrderList = () => {
+    if (winningOrder.length == 0) {
+      return null;
+    }
+
+    // newWiningOrder filter by include segments
+    const newWiningOrder = winningOrder.filter((segment) =>
+      segments.includes(segment)
+    );
+
+    setWinningOrder(newWiningOrder);
+    socket.emit("setWinningOrder", newWiningOrder);
+
+    const wining = newWiningOrder[0];
+    return wining;
   };
 
   const initData = () => {
@@ -95,8 +117,6 @@ const Spin = ({
 
   const initCanvas = () => {
     const canvas = canvasRef.current;
-
-  
   };
 
   const startIdleSpin = () => {
@@ -143,6 +163,16 @@ const Spin = ({
         const finalSegment = segments[finalSegmentIndex];
         setCurrentSegment(finalSegment);
 
+        if (finalSegment == winingOrderList()) {
+          console.log("You win!");
+          //remove wining segment from list winingOrder
+          const newWiningOrder = winningOrder.filter(
+            (segment) => segment !== finalSegment
+          );
+          setWinningOrder(newWiningOrder);
+          socket.emit("setWinningOrder", newWiningOrder);
+        }
+
         console.log("Finished spinning", finalSegment);
       } else {
         // Easing function for smooth deceleration
@@ -169,8 +199,8 @@ const Spin = ({
     const segmentAngle = (Math.PI * 2) / numberOfSegments;
 
     let targetIndex;
-    if (winningSegment) {
-      targetIndex = segments.indexOf(winningSegment);
+    if (winingOrderList()) {
+      targetIndex = segments.indexOf(winingOrderList());
       if (targetIndex === -1) {
         targetIndex = Math.floor(Math.random() * numberOfSegments);
       }
@@ -254,7 +284,6 @@ const Spin = ({
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-
   };
 
   const draw = () => {
