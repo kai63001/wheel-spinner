@@ -1,5 +1,7 @@
 "use client";
 
+import Controller from "./components/Controller";
+import Navbar from "./components/Navbar";
 import Spin from "./components/Spin";
 import { inter } from "./fonts";
 
@@ -41,6 +43,10 @@ export default function Home() {
   ];
 
   return (
+    <>
+    <header>
+      <Navbar />
+    </header>
     <main className="grid grid-cols-12 gap-4">
       <div className="col-span-3">asd</div>
       <div className="col-span-6">
@@ -51,8 +57,7 @@ export default function Home() {
             primaryColor="white"
             primaryColoraround="#ffffffb4"
             contrastColor="white"
-            winningSegment="Surprised"
-            buttonText="Spin"
+            // winningSegment="Alex"
             isOnlyOnce={false}
             upDuration={5}
             downDuration={100}
@@ -60,8 +65,9 @@ export default function Home() {
         </div>
       </div>
       <div className="col-span-3">
-        <div className="roboto-medium "> test fontttt</div>
+        <Controller />
       </div>
     </main>
+    </>
   );
 }

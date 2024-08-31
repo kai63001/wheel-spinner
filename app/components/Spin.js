@@ -1,24 +1,17 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import "../globals.css";
+import { controllerStore } from "../store/controllerStore";
 
 const Spin = ({
-  segments,
-  segColors,
   winningSegment,
-  onRotate,
-  onRotatefinish,
   primaryColor,
-  primaryColoraround,
   contrastColor,
-  buttonText,
   isOnlyOnce = true,
-  upDuration = 1000,
-  downDuration = 1000,
   fontFamily = "Quicksand",
-  width = 100,
-  height = 100,
 }) => {
+  const { textRandomList: segments, textRandomListColorBase: segColors } =
+    controllerStore();
   const [currentSegment, setCurrentSegment] = useState("");
   const [isStarted, setIsStarted] = useState(false);
   const [isFinished, setFinished] = useState(false);
@@ -27,21 +20,46 @@ const Spin = ({
   const idleIntervalRef = useRef(null);
 
   const [angleCurrent, setAngleCurrent] = useState(0);
-  const [angleDelta, setAngleDelta] = useState(0);
-  const maxSpeed = Math.PI / (segments?.length || 1);
   const size = 300;
   const centerX = 300;
   const centerY = 300;
+  const [globalFontSize, setGlobalFontSize] = useState(40);
+
+  const calculateGlobalFontSize = () => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      const availableWidth = size / 2 + 60;
+      let fontSize = 60;
+
+      ctx.font = `bold ${fontSize}px ${fontFamily}`;
+
+      const longestText = segments.reduce((a, b) =>
+        a.length > b.length ? a : b
+      );
+
+      let textWidth = ctx.measureText(longestText).width;
+
+      while (textWidth > availableWidth && fontSize > 25) {
+        fontSize--;
+        ctx.font = `bold ${fontSize}px ${fontFamily}`;
+        textWidth = ctx.measureText(longestText).width;
+      }
+
+      setGlobalFontSize(fontSize);
+    }
+  };
 
   useEffect(() => {
     wheelInit();
     startIdleSpin();
+    calculateGlobalFontSize();
 
     return () => {
       clearInterval(idleIntervalRef.current);
       clearInterval(timerHandle.current);
     };
-  }, []);
+  }, [segments]);
 
   const wheelInit = () => {
     initCanvas();
@@ -95,26 +113,29 @@ const Spin = ({
         clearInterval(spinInterval);
         setFinished(true);
         setIsStarted(false);
-        console.log("Finished spinning", currentSegment);
+        
+        // Ensure the final segment is correct
+        const finalSegmentIndex = Math.floor(segments.length - (targetAngle / (Math.PI * 2) * segments.length) % segments.length);
+        const finalSegment = segments[finalSegmentIndex];
+        setCurrentSegment(finalSegment);
+        
+        console.log("Finished spinning", finalSegment);
+      } else {
+        // Easing function for smooth deceleration
+        const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+        const easedProgress = easeOutCubic(progress);
+
+        const newAngleCurrent = targetAngle * easedProgress;
+        setAngleCurrent(newAngleCurrent);
+
+        // Calculate the current segment
+        const segmentAngle = (Math.PI * 2) / segments.length;
+        const normalizedAngle = (newAngleCurrent % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+        const segmentIndex = Math.floor(normalizedAngle / segmentAngle);
+        const newSegment = segments[segments.length - 1 - segmentIndex];
+
+        setCurrentSegment(newSegment);
       }
-
-      // Easing function for smooth deceleration
-      const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-      const easedProgress = easeOutCubic(progress);
-
-      const newAngleCurrent = targetAngle * easedProgress;
-      setAngleCurrent(newAngleCurrent);
-
-      // Calculate the segment index correctly
-      const segmentAngle = (Math.PI * 2) / segments.length;
-      const normalizedAngle =
-        ((newAngleCurrent % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-      const segmentIndex = Math.floor(normalizedAngle / segmentAngle);
-      const newSegment = segments[segments.length - 1 - segmentIndex];
-
-      console.log("Segment index", segmentIndex, "Segment", newSegment);
-
-      setCurrentSegment(newSegment);
     }, 20);
   };
 
@@ -122,21 +143,28 @@ const Spin = ({
     const numberOfSegments = segments.length;
     const segmentAngle = (Math.PI * 2) / numberOfSegments;
 
+    let targetIndex;
     if (winningSegment) {
-      const winningIndex = segments.indexOf(winningSegment);
-      if (winningIndex !== -1) {
-        // Calculate the exact angle to stop at the center of the winning segment
-        return (
-          (numberOfSegments - winningIndex - 0.5) * segmentAngle + Math.PI * 4
-        ); // Add extra rotations
+      targetIndex = segments.indexOf(winningSegment);
+      if (targetIndex === -1) {
+        targetIndex = Math.floor(Math.random() * numberOfSegments);
       }
+    } else {
+      targetIndex = Math.floor(Math.random() * numberOfSegments);
     }
 
-    // Random end point if no winning segment
-    const randomSegment = Math.floor(Math.random() * numberOfSegments);
-    return (
-      (numberOfSegments - randomSegment - 0.5) * segmentAngle + Math.PI * 4
-    );
+    // Calculate the base angle to rotate so that the target segment is at the top
+   const baseAngle = (numberOfSegments - targetIndex - 0.5) * segmentAngle;
+
+  // Add a small random offset within the segment (between -0.2 and 0.2 of a segment)
+  // This is smaller than before to ensure we don't accidentally land on the wrong segment
+  const randomOffset = (Math.random() - 0.5) * 0.4 * segmentAngle;
+
+
+    // Add extra rotations for a more dramatic effect
+    const extraRotations = Math.PI * 10; // 5 full rotations
+
+    return baseAngle + randomOffset + extraRotations;
   };
 
   const drawSegment = (ctx, key, lastAngle, angle) => {
@@ -153,8 +181,14 @@ const Spin = ({
     ctx.translate(centerX, centerY);
     ctx.rotate((lastAngle + angle) / 2);
     ctx.fillStyle = contrastColor || "white";
-    ctx.font = "bold 40px " + fontFamily;
-    ctx.fillText(value.substr(0, 21), size / 2 + 120, 0);
+
+    ctx.font = `bold ${globalFontSize}px ${fontFamily}`;
+    //elipsis
+    ctx.fillText(
+      value.length > 15 ? value.substring(0, 13) + "..." : value,
+      size / 2 + 135,
+      0
+    );
     ctx.restore();
   };
 
@@ -185,23 +219,23 @@ const Spin = ({
   };
 
   const drawNeedle = (ctx) => {
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
     ctx.fillStyle = "#BBBBBB";
     ctx.strokeStyle = "black";
 
     ctx.beginPath();
-    ctx.moveTo(centerX + size, centerY);
-    ctx.lineTo(centerX + size + 40, centerY - 20);
-    ctx.lineTo(centerX + size + 40, centerY + 20);
+    ctx.moveTo(centerX + size - 20, centerY);
+    ctx.lineTo(centerX + size + 20, centerY - 20);
+    ctx.lineTo(centerX + size + 20, centerY + 20);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    if (isStarted) {
-      ctx.fillStyle = contrastColor || "white";
-      ctx.font = "bold 20px " + fontFamily;
-      ctx.fillText(currentSegment, centerX + size + 50, centerY);
-    }
+    // if (isStarted) {
+    //   ctx.fillStyle = contrastColor || "white";
+    //   ctx.font = "bold 20px " + fontFamily;
+    //   ctx.fillText(currentSegment, centerX + size + 50, centerY);
+    // }
   };
 
   const draw = () => {
