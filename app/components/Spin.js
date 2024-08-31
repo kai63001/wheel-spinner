@@ -1,29 +1,51 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import "../globals.css";
+import { socket } from "../socker";
 import { controllerStore } from "../store/controllerStore";
+import WinnerPopup from "./Wining";
 
 const Spin = ({
-  winningSegment,
   primaryColor,
   contrastColor,
   isOnlyOnce = true,
   fontFamily = "Quicksand",
 }) => {
-  const { textRandomList: segments, textRandomListColorBase: segColors } =
-    controllerStore();
+  const { setSpining, duration } = controllerStore();
+  const [segments, setSegments] = useState([]);
+  const audioRef = useRef(null);
+  const audioEndRef = useRef(null);
+  const [segColors, setSegColors] = useState([]);
+  const listColors = ["#009925", "#D61024", "#EEB212", "#3369E8"];
   const [currentSegment, setCurrentSegment] = useState("");
   const [isStarted, setIsStarted] = useState(false);
   const [isFinished, setFinished] = useState(false);
   const canvasRef = useRef(null);
-  const timerHandle = useRef(0);
   const idleIntervalRef = useRef(null);
+  const [winningOrder, setWinningOrder] = useState([]);
+  const [showWinnerPopup, setShowWinnerPopup] = useState(false);
+  const lastPlayedTime = useRef(0);
 
   const [angleCurrent, setAngleCurrent] = useState(0);
   const size = 300;
   const centerX = 300;
   const centerY = 300;
   const [globalFontSize, setGlobalFontSize] = useState(40);
+
+  const playTickSound = () => {
+    audioRef.current.currentTime = 0;
+    audioRef.current.play();
+  };
+
+  const playEndSound = () => {
+    audioEndRef.current.currentTime = 0;
+    audioEndRef.current.play();
+  };
+
+  const getCurrentColorBySegment = (segment) => {
+    const index = segments.indexOf(segment);
+    return segColors[index];
+  };
 
   const calculateGlobalFontSize = () => {
     const canvas = canvasRef.current;
@@ -33,6 +55,7 @@ const Spin = ({
       let fontSize = 60;
 
       ctx.font = `bold ${fontSize}px ${fontFamily}`;
+      if (segments.length < 2) return;
 
       const longestText = segments.reduce((a, b) =>
         a.length > b.length ? a : b
@@ -51,32 +74,67 @@ const Spin = ({
   };
 
   useEffect(() => {
+    initData();
     wheelInit();
+    fetchSegments();
     startIdleSpin();
-    calculateGlobalFontSize();
+
+    audioRef.current = new Audio("/ding.mp3");
+    audioEndRef.current = new Audio("/end.mp3");
 
     return () => {
-      clearInterval(idleIntervalRef.current);
-      clearInterval(timerHandle.current);
+      stopIdleSpin();
     };
-  }, [segments]);
+  }, []);
 
-  const wheelInit = () => {
-    initCanvas();
-    draw();
+  const fetchSegments = async () => {
+    socket.emit("getList");
+    socket.on("randomList", (segments) => {
+      setSegments(segments);
+      setSegColors(
+        segments.map((_, i) => {
+          return listColors[i % listColors.length];
+        })
+      );
+    });
+    socket.on("winningOrder", (order) => {
+      setWinningOrder(order);
+    });
   };
 
-  const initCanvas = () => {
-    const canvas = canvasRef.current;
+  const winingOrderList = () => {
+    if (winningOrder.length == 0) {
+      return null;
+    }
+
+    // newWiningOrder filter by include segments
+    const newWiningOrder = winningOrder.filter((segment) =>
+      segments.includes(segment)
+    );
+
+    setWinningOrder(newWiningOrder);
+    socket.emit("setWinningOrder", newWiningOrder);
+
+    const wining = newWiningOrder[0];
+    return wining;
+  };
+
+  const initData = () => {
     var link = document.createElement("link");
     link.rel = "stylesheet";
     link.type = "text/css";
     link.href =
       "https://fonts.googleapis.com/css?family=Quicksand&display=swap";
     document.getElementsByTagName("head")[0].appendChild(link);
-    if (canvas) {
-      canvas.addEventListener("click", spin);
-    }
+  };
+
+  useEffect(() => {
+    calculateGlobalFontSize();
+    draw();
+  }, [segments]);
+
+  const wheelInit = () => {
+    draw();
   };
 
   const startIdleSpin = () => {
@@ -95,13 +153,17 @@ const Spin = ({
   const spin = () => {
     if (isStarted) return;
     setIsStarted(true);
+    setSpining(true);
     stopIdleSpin();
     setAngleCurrent(0);
 
-    const totalDuration = 5000; // Total time the spin should take
+    const totalDuration = duration * 1000;
     const startTime = new Date().getTime();
 
     const targetAngle = getTargetAngle();
+    const totalRotations = 10 + segments.length / 2; // Adjust as needed
+
+    let lastSegment = "";
 
     const spinInterval = setInterval(() => {
       const now = new Date().getTime();
@@ -113,27 +175,62 @@ const Spin = ({
         clearInterval(spinInterval);
         setFinished(true);
         setIsStarted(false);
-        
+        setSpining(false);
+
         // Ensure the final segment is correct
-        const finalSegmentIndex = Math.floor(segments.length - (targetAngle / (Math.PI * 2) * segments.length) % segments.length);
+        const finalSegmentIndex = Math.floor(
+          segments.length -
+            (((targetAngle / (Math.PI * 2)) * segments.length) %
+              segments.length)
+        );
         const finalSegment = segments[finalSegmentIndex];
         setCurrentSegment(finalSegment);
-        
-        console.log("Finished spinning", finalSegment);
-      } else {
-        // Easing function for smooth deceleration
-        const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-        const easedProgress = easeOutCubic(progress);
 
+        if (finalSegment == winingOrderList()) {
+          //remove wining segment from list winingOrder
+          const newWiningOrder = winningOrder.filter(
+            (segment) => segment !== finalSegment
+          );
+          setWinningOrder(newWiningOrder);
+          socket.emit("setWinningOrder", newWiningOrder);
+        }
+
+        console.log("Finished spinning", finalSegment);
+        setShowWinnerPopup(true);
+        socket.emit("addResult", finalSegment);
+        playEndSound();
+      } else {
+        const customEasing = (t) => {
+          if (t < 0.5) {
+            return 2 * t * (duration / 5);
+          } else {
+            return 1 - Math.pow(-2 * t + 2, 2) / 2;
+          }
+        };
+        const easedProgress = customEasing(progress);
         const newAngleCurrent = targetAngle * easedProgress;
         setAngleCurrent(newAngleCurrent);
 
         // Calculate the current segment
         const segmentAngle = (Math.PI * 2) / segments.length;
-        const normalizedAngle = (newAngleCurrent % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+        const normalizedAngle =
+          ((newAngleCurrent % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
         const segmentIndex = Math.floor(normalizedAngle / segmentAngle);
         const newSegment = segments[segments.length - 1 - segmentIndex];
 
+        // if (newSegment !== currentSegment) {
+        //   playTickSound();
+        // }
+        if (newSegment !== lastSegment) {
+          playTickSound();
+          lastSegment = newSegment;
+        }
+        // lastSegment = newSegment;
+
+        // if (newSegment !== lastSegment) {
+        //   playTickSound();
+        //   lastSegment = newSegment;
+        // }
         setCurrentSegment(newSegment);
       }
     }, 20);
@@ -144,8 +241,8 @@ const Spin = ({
     const segmentAngle = (Math.PI * 2) / numberOfSegments;
 
     let targetIndex;
-    if (winningSegment) {
-      targetIndex = segments.indexOf(winningSegment);
+    if (winingOrderList()) {
+      targetIndex = segments.indexOf(winingOrderList());
       if (targetIndex === -1) {
         targetIndex = Math.floor(Math.random() * numberOfSegments);
       }
@@ -153,13 +250,9 @@ const Spin = ({
       targetIndex = Math.floor(Math.random() * numberOfSegments);
     }
 
-    // Calculate the base angle to rotate so that the target segment is at the top
-   const baseAngle = (numberOfSegments - targetIndex - 0.5) * segmentAngle;
+    const baseAngle = (numberOfSegments - targetIndex - 0.5) * segmentAngle;
 
-  // Add a small random offset within the segment (between -0.2 and 0.2 of a segment)
-  // This is smaller than before to ensure we don't accidentally land on the wrong segment
-  const randomOffset = (Math.random() - 0.5) * 0.4 * segmentAngle;
-
+    const randomOffset = (Math.random() - 0.5) * 0.8 * segmentAngle;
 
     // Add extra rotations for a more dramatic effect
     const extraRotations = Math.PI * 10; // 5 full rotations
@@ -180,8 +273,9 @@ const Spin = ({
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate((lastAngle + angle) / 2);
-    ctx.fillStyle = contrastColor || "white";
-
+    ctx.fillStyle = ["#009925", "#EEB212"].includes(segColors[key])
+      ? "black"
+      : "white";
     ctx.font = `bold ${globalFontSize}px ${fontFamily}`;
     //elipsis
     ctx.fillText(
@@ -230,12 +324,6 @@ const Spin = ({
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-
-    // if (isStarted) {
-    //   ctx.fillStyle = contrastColor || "white";
-    //   ctx.font = "bold 20px " + fontFamily;
-    //   ctx.fillText(currentSegment, centerX + size + 50, centerY);
-    // }
   };
 
   const draw = () => {
@@ -246,6 +334,19 @@ const Spin = ({
       drawWheel(ctx);
       drawNeedle(ctx);
     }
+  };
+
+  const handleClosePopup = () => {
+    setShowWinnerPopup(false);
+  };
+
+  const handleRemoveWinner = () => {
+    const newSegments = segments.filter(
+      (segment) => segment !== currentSegment
+    );
+    setSegments(newSegments);
+    socket.emit("updateEntries", newSegments);
+    setShowWinnerPopup(false);
   };
 
   useEffect(() => {
@@ -260,11 +361,20 @@ const Spin = ({
         id="canvas"
         width="700"
         height="700"
+        onClick={spin}
         style={{
           pointerEvents: isFinished && isOnlyOnce ? "none" : "auto",
           width: "100%",
         }}
       />
+      {showWinnerPopup && (
+        <WinnerPopup
+          color={getCurrentColorBySegment(currentSegment)}
+          winner={currentSegment}
+          onClose={handleClosePopup}
+          onRemove={handleRemoveWinner}
+        />
+      )}
     </div>
   );
 };

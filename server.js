@@ -7,6 +7,9 @@ const hostname = "localhost";
 const port = 3000;
 const app = next({ dev, port });
 const handler = app.getRequestHandler();
+let list = ["Alex", "Jon", "Doe", "Jane", "Alice", "Bob", "Charlie"];
+let winningOrder = [];
+let result = [];
 
 app.prepare().then(() => {
   const httpServer = createServer(handler);
@@ -14,15 +17,30 @@ app.prepare().then(() => {
   const io = new Server(httpServer);
 
   io.on("connection", (socket) => {
-    console.log("a user connected");
-
     socket.on("updateEntries", (msg) => {
-      console.log("message: " + msg);
+      list = msg;
       io.emit("randomList", msg);
     });
 
-    socket.on("disconnect", () => {
-      console.log("user disconnected");
+    socket.on("getList", () => {
+      io.emit("randomList", list);
+      io.emit("winningOrder", winningOrder);
+      io.emit("result", result);
+    });
+
+    socket.on("setWinningOrder", (order) => {
+      winningOrder = order;
+      io.emit("winningOrder", winningOrder);
+    });
+
+    socket.on("addResult", (res) => {
+      result.push(res);
+      io.emit("result", result);
+    });
+
+    socket.on("setResult", (res) => {
+      result = res;
+      io.emit("result", result);
     });
   });
 

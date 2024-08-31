@@ -24,9 +24,15 @@ export default function Home() {
       socket.io.engine.on("upgrade", (transport) => {
         setTransport(transport.name);
       });
-
-      //init data
-      socket.emit("updateEntries", textRandomList);
+      socket.emit("getList");
+      socket.on("randomList", (segments) => {
+        if (segments) {
+          setTextRandomList(segments);
+        } else {
+          //init data
+          socket.emit("updateEntries", textRandomList);
+        }
+      });
     }
 
     function onDisconnect() {
@@ -56,7 +62,6 @@ export default function Home() {
               primaryColor="white"
               primaryColoraround="#ffffffb4"
               contrastColor="white"
-              // winningSegment="Alex"
               isOnlyOnce={false}
               upDuration={5}
               downDuration={100}
