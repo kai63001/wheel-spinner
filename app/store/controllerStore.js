@@ -5,6 +5,8 @@ export const controllerStore = create((set) => ({
 //   textRandomListColorBase: ["#009925", "#D61024", "#EEB212", "#3369E8","#009925", "#D61024", "#EEB212"],
   textRandomList: [],
   spining: false,
+  duration: 10,
+  setDuration: (duration) => set({ duration }),
   setSpining: (spining) => set({ spining }),
   textRandomListColorBase: [],
   setTextRandomList: (textRandomList) => {

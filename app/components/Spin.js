@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import "../globals.css";
 import { socket } from "../socker";
 import { controllerStore } from "../store/controllerStore";
@@ -11,7 +11,7 @@ const Spin = ({
   isOnlyOnce = true,
   fontFamily = "Quicksand",
 }) => {
-  const { setSpining } = controllerStore();
+  const { setSpining, duration } = controllerStore();
   const [segments, setSegments] = useState([]);
   const [segColors, setSegColors] = useState([]);
   const listColors = ["#009925", "#D61024", "#EEB212", "#3369E8"];
@@ -129,17 +129,17 @@ const Spin = ({
     clearInterval(idleIntervalRef.current);
   };
 
-  const spin = () => {
+  const spin = useCallback(() => {
     if (isStarted) return;
     setIsStarted(true);
     setSpining(true);
     stopIdleSpin();
     setAngleCurrent(0);
 
-    const totalDuration = 2000; // Total time the spin should take
+    const totalDuration = duration * 1000;
     const startTime = new Date().getTime();
-
     const targetAngle = getTargetAngle();
+    const totalRotations = 10 + segments.length / 2; // Adjust total rotations based on segment count
 
     const spinInterval = setInterval(() => {
       const now = new Date().getTime();
@@ -153,7 +153,6 @@ const Spin = ({
         setIsStarted(false);
         setSpining(false);
 
-        // Ensure the final segment is correct
         const finalSegmentIndex = Math.floor(
           segments.length -
             (((targetAngle / (Math.PI * 2)) * segments.length) %
@@ -162,8 +161,7 @@ const Spin = ({
         const finalSegment = segments[finalSegmentIndex];
         setCurrentSegment(finalSegment);
 
-        if (finalSegment == winingOrderList()) {
-          //remove wining segment from list winingOrder
+        if (finalSegment === winingOrderList()) {
           const newWiningOrder = winningOrder.filter(
             (segment) => segment !== finalSegment
           );
@@ -175,26 +173,33 @@ const Spin = ({
         setShowWinnerPopup(true);
         socket.emit("addResult", finalSegment);
       } else {
-        // Easing function for smooth deceleration
-        const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-        const easedProgress = easeOutCubic(progress);
-
-        const newAngleCurrent = targetAngle * easedProgress;
+        const easedProgress = customEasing(progress);
+        const currentRotation = easedProgress * totalRotations;
+        const newAngleCurrent = (currentRotation * Math.PI * 2 + targetAngle) % (Math.PI * 2);
         setAngleCurrent(newAngleCurrent);
 
-        // Calculate the current segment
         const segmentAngle = (Math.PI * 2) / segments.length;
-        const normalizedAngle =
-          ((newAngleCurrent % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const normalizedAngle = (newAngleCurrent + Math.PI * 2) % (Math.PI * 2);
         const segmentIndex = Math.floor(normalizedAngle / segmentAngle);
         const newSegment = segments[segments.length - 1 - segmentIndex];
 
         setCurrentSegment(newSegment);
       }
-    }, 20);
+    }, 16); // Aim for 60 FPS
+  }, [isStarted, segments, duration, winningOrder, winingOrderList]);
+
+  const customEasing = (t) => {
+    // Combine a quick start with a smooth end
+    if (t < 0.5) {
+      // Accelerate quickly at the start
+      return (2 * t) * (duration / 10);
+    } else {
+      // Decelerate smoothly at the end
+      return 1 - Math.pow(-2 * t + 2, 2) / 2;
+    }
   };
 
-  const getTargetAngle = () => {
+  const getTargetAngle = useCallback(() => {
     const numberOfSegments = segments.length;
     const segmentAngle = (Math.PI * 2) / numberOfSegments;
 
@@ -208,18 +213,11 @@ const Spin = ({
       targetIndex = Math.floor(Math.random() * numberOfSegments);
     }
 
-    // Calculate the base angle to rotate so that the target segment is at the top
     const baseAngle = (numberOfSegments - targetIndex - 0.5) * segmentAngle;
-
-    // Add a small random offset within the segment (between -0.2 and 0.2 of a segment)
-    // This is smaller than before to ensure we don't accidentally land on the wrong segment
     const randomOffset = (Math.random() - 0.5) * 0.4 * segmentAngle;
 
-    // Add extra rotations for a more dramatic effect
-    const extraRotations = Math.PI * 10; // 5 full rotations
-
-    return baseAngle + randomOffset + extraRotations;
-  };
+    return baseAngle + randomOffset;
+  }, [segments, winingOrderList]);
 
   const drawSegment = (ctx, key, lastAngle, angle) => {
     const value = segments[key];

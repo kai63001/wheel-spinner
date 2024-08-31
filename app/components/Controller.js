@@ -48,7 +48,6 @@ const EntriesComponent = () => {
       setEntries(segments.join("\n"));
     });
     socket.on("result", (res) => {
-      console.log("resutl", res);
       setResult(res.join("\n"));
     });
   };

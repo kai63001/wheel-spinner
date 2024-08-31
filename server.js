@@ -35,7 +35,6 @@ app.prepare().then(() => {
 
     socket.on("addResult", (res) => {
       result.push(res);
-      console.log(result);
       io.emit("result", result);
     });
 
