@@ -24,6 +24,7 @@ import CuztomizeModal from "./CustomizeModal";
 import { useState, useRef, useEffect } from "react";
 import { controllerStore } from "../store/controllerStore";
 import { socket } from "../socker";
+import Image from "next/image";
 
 const Navbar = () => {
   const { duration, setDuration } = controllerStore();
@@ -85,7 +86,13 @@ const Navbar = () => {
   return (
     <>
       <nav className="bg-[#3369E8] text-white px-3 py-1.5 flex items-center justify-between mb-10 relative">
-        <button className="text-xl">Spiner</button>
+        <button className="text-xl flex items-center space-x-2">
+          <Image src="/icon.png" width={39} height={39} alt="logo" className="rounded-full" />
+          <p>
+
+          wheelofnames.com
+          </p>
+          </button>
         <ul className="hidden lg:flex">
           <li>
             <button
@@ -195,9 +202,13 @@ const Navbar = () => {
               <p className="text-sm">New</p>
             </li>
             {menuItems.map((item, index) => (
-              <li key={index} onClick={()=>{
-                setIsOpen(false);
-              }} className="px-5 flex items-center py-3 space-x-5">
+              <li
+                key={index}
+                onClick={() => {
+                  setIsOpen(false);
+                }}
+                className="px-5 flex items-center py-3 space-x-5"
+              >
                 {item.icon}
                 <p className="text-sm">{item.text}</p>
               </li>

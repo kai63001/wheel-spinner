@@ -207,6 +207,7 @@ const Spin = ({
             return 1 - (Math.pow(-2 * t + 2, 2) / 2) * (duration / 5);
           }
         };
+
         const easedProgress = customEasing(progress);
         const newAngleCurrent = targetAngle * easedProgress;
         setAngleCurrent(newAngleCurrent);
@@ -233,7 +234,7 @@ const Spin = ({
         // }
         setCurrentSegment(newSegment);
       }
-    }, 20);
+    }, 16);
   };
 
   const getTargetAngle = () => {
