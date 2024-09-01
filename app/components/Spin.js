@@ -24,7 +24,6 @@ const Spin = ({
   const idleIntervalRef = useRef(null);
   const [winningOrder, setWinningOrder] = useState([]);
   const [showWinnerPopup, setShowWinnerPopup] = useState(false);
-  const lastPlayedTime = useRef(0);
 
   const [angleCurrent, setAngleCurrent] = useState(0);
   const size = 300;
@@ -49,13 +48,12 @@ const Spin = ({
 
   const calculateGlobalFontSize = () => {
     const canvas = canvasRef.current;
-    if (canvas) {
+    if (canvas && segments.length > 0) {
       const ctx = canvas.getContext("2d");
       const availableWidth = size / 2 + 60;
       let fontSize = 60;
 
       ctx.font = `bold ${fontSize}px ${fontFamily}`;
-      if (segments.length < 2) return;
 
       const longestText = segments.reduce((a, b) =>
         a.length > b.length ? a : b
@@ -63,13 +61,17 @@ const Spin = ({
 
       let textWidth = ctx.measureText(longestText).width;
 
-      while (textWidth > availableWidth && fontSize > 25) {
+      // Adjust font size based on number of segments
+      const segmentAdjustment = Math.max(1, Math.log2(segments.length) * 0.5);
+      fontSize = Math.min(fontSize, fontSize / segmentAdjustment);
+
+      while (textWidth > availableWidth && fontSize > 20) {
         fontSize--;
         ctx.font = `bold ${fontSize}px ${fontFamily}`;
         textWidth = ctx.measureText(longestText).width;
       }
 
-      setGlobalFontSize(fontSize);
+      setGlobalFontSize(Math.floor(fontSize));
     }
   };
 
@@ -201,14 +203,16 @@ const Spin = ({
         playEndSound();
       } else {
         const customEasing = (t) => {
-          if (t < 0.5) {
-            return (2 * t * (duration / 3));
+          if (t < 0.1) {
+            console.log(t);
+            return 2 * t * (duration * (t * 10));
           } else {
-            return 1 - (Math.pow(-2 * t + 2, 2) / 2) * (duration / 5);
+            return 1 - (Math.pow(-2 * t + 2, 2) / 2) * (duration / (t * 100));
           }
         };
 
         const easedProgress = customEasing(progress);
+        console.log("Eased progress", easedProgress);
         const newAngleCurrent = targetAngle * easedProgress;
         setAngleCurrent(newAngleCurrent);
 
