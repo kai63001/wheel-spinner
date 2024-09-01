@@ -3,7 +3,7 @@ import React from "react";
 const WinnerPopup = ({ color, winner, onClose, onRemove }) => {
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
         <div className="w-[700px]">
           <div
             className=" text-white text-xl font-medium py-5 px-4 rounded-t-lg"
