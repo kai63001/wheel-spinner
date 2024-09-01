@@ -202,9 +202,9 @@ const Spin = ({
       } else {
         const customEasing = (t) => {
           if (t < 0.5) {
-            return 2 * t * (duration / 5);
+            return (2 * t * (duration / 3));
           } else {
-            return 1 - Math.pow(-2 * t + 2, 2) / 2;
+            return 1 - (Math.pow(-2 * t + 2, 2) / 2) * (duration / 5);
           }
         };
         const easedProgress = customEasing(progress);
