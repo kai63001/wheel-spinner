@@ -55,8 +55,8 @@ export default function Home() {
         <Navbar />
       </header>
       <main className="grid grid-cols-12 gap-4">
-        <div className="col-span-3">asd</div>
-        <div className="col-span-6">
+        <div className="lg:col-span-3 col-span-1"></div>
+        <div className="lg:col-span-6 col-span-11 ml-4 lg:ml-0">
           <div id="wheelCircle" className="roboto-medium ">
             <Spin
               primaryColor="white"
@@ -68,7 +68,7 @@ export default function Home() {
             />
           </div>
         </div>
-        <div className="col-span-3">
+        <div className="lg:col-span-3 col-span-12">
           <Controller />
         </div>
       </main>
