@@ -90,7 +90,7 @@ const EntriesComponent = () => {
   };
 
   return (
-    <div className="mr-5 rounded-md h-full">
+    <div className="mr-0 px-5 lg:px-0 lg:mr-5 rounded-md h-full min-h-[500px] -mt-20 lg:-mt-0">
       <Tabs
         value={tabValue}
         onChange={handleTabChange}
