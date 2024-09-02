@@ -69,6 +69,7 @@ const EntriesComponent = () => {
   };
 
   const shuffleEntries = () => {
+    if (spining) return null;
     const array = entries.split("\n");
     const shuffledArray = array.sort(() => Math.random() - 0.5);
     setEntries(shuffledArray.join("\n"));
@@ -76,6 +77,7 @@ const EntriesComponent = () => {
   };
 
   const sortEntries = () => {
+    if (spining) return null;
     const array = entries.split("\n");
     const sortedArray = array.sort();
     setEntries(sortedArray.join("\n"));
@@ -83,6 +85,7 @@ const EntriesComponent = () => {
   };
 
   const sortResult = () => {
+    if (spining) return null;
     const array = result.split("\n");
     const sortedArray = array.sort();
     setResult(sortedArray.join("\n"));
@@ -121,6 +124,7 @@ const EntriesComponent = () => {
           <>
             <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
               <Button
+                disabled={spining}
                 variant="contained"
                 startIcon={<ShuffleIcon />}
                 onClick={shuffleEntries}
@@ -130,6 +134,7 @@ const EntriesComponent = () => {
                 Shuffle
               </Button>
               <Button
+                disabled={spining}
                 onClick={sortEntries}
                 variant="contained"
                 startIcon={<SortIcon />}
@@ -194,6 +199,7 @@ const EntriesComponent = () => {
           <>
             <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
               <Button
+                disabled={spining}
                 variant="contained"
                 startIcon={<SortIcon />}
                 onClick={sortResult}
@@ -204,6 +210,7 @@ const EntriesComponent = () => {
               </Button>
               <Button
                 variant="contained"
+                disabled={spining}
                 startIcon={<ClearIcon />}
                 onClick={clearListResult}
                 size="small"
