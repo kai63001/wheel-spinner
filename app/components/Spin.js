@@ -198,9 +198,11 @@ const Spin = ({
         }
 
         console.log("Finished spinning", finalSegment);
-        setShowWinnerPopup(true);
-        socket.emit("addResult", finalSegment);
-        playEndSound();
+        setTimeout(() => {
+          setShowWinnerPopup(true);
+          socket.emit("addResult", finalSegment);
+          playEndSound();
+        }, 1500);
       } else {
         const customEasing = (t) => {
           if (t < 0.1) {
