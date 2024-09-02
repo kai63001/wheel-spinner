@@ -27,7 +27,7 @@ import { socket } from "../socker";
 import Image from "next/image";
 
 const Navbar = () => {
-  const { duration, setDuration } = controllerStore();
+  const { duration, setDuration, spining } = controllerStore();
   const [openCustomize, setOpenCustomize] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
@@ -40,6 +40,7 @@ const Navbar = () => {
   };
 
   const newHandle = () => {
+    if (spining) return null;
     const sortedArray = [
       "Charles",
       "Diana",
@@ -87,16 +88,22 @@ const Navbar = () => {
     <>
       <nav className="bg-[#3369E8] text-white px-3 py-1.5 flex items-center justify-between mb-10 relative">
         <button className="text-xl flex items-center space-x-2">
-          <Image src="/icon.png" width={39} height={39} alt="logo" className="rounded-full" />
-          <p>
-
-          wheelofnames.com
-          </p>
-          </button>
+          <Image
+            src="/icon.png"
+            width={39}
+            height={39}
+            alt="logo"
+            className="rounded-full"
+          />
+          <p>wheelofnames.com</p>
+        </button>
         <ul className="hidden lg:flex">
           <li>
             <button
-              onClick={() => setOpenCustomize(true)}
+              onClick={() => {
+                if (spining) return null;
+                setOpenCustomize(true);
+              }}
               className="px-3 py-2 hover:bg-blue-400/50 flex space-x-2"
             >
               <PaletteIcon />
@@ -216,18 +223,17 @@ const Navbar = () => {
           </ul>
         )}
       </nav>
-      {openCustomize && (
-        <CuztomizeModal
-          closeModal={() => {
-            setOpenCustomize(false);
-          }}
-          setCustomDuration={(e) => {
-            setOpenCustomize(false);
-            setDuration(e);
-          }}
-          duration={duration}
-        />
-      )}
+      <CuztomizeModal
+        closeModal={() => {
+          setOpenCustomize(false);
+        }}
+        setCustomDuration={(e) => {
+          setOpenCustomize(false);
+          setDuration(e);
+        }}
+        duration={duration}
+        isVisible={openCustomize}
+      />
     </>
   );
 };

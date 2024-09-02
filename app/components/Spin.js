@@ -212,7 +212,7 @@ const Spin = ({
         };
 
         const easedProgress = customEasing(progress);
-        console.log("Eased progress", easedProgress);
+        // console.log("Eased progress", easedProgress);
         const newAngleCurrent = targetAngle * easedProgress;
         setAngleCurrent(newAngleCurrent);
 
@@ -372,14 +372,13 @@ const Spin = ({
           width: "100%",
         }}
       />
-      {showWinnerPopup && (
-        <WinnerPopup
-          color={getCurrentColorBySegment(currentSegment)}
-          winner={currentSegment}
-          onClose={handleClosePopup}
-          onRemove={handleRemoveWinner}
-        />
-      )}
+      <WinnerPopup
+        color={getCurrentColorBySegment(currentSegment)}
+        winner={currentSegment}
+        onClose={handleClosePopup}
+        onRemove={handleRemoveWinner}
+        isVisible={showWinnerPopup}
+      />
     </div>
   );
 };
