@@ -49,6 +49,7 @@ const EntriesComponent = () => {
     });
     socket.on("result", (res) => {
       setResult(res.join("\n"));
+      forFixFont();
     });
   };
 
@@ -60,6 +61,15 @@ const EntriesComponent = () => {
     setEntries(event.target.value);
     const array = event.target.value.split("\n");
     socket.emit("updateEntries", array);
+  };
+
+  const forFixFont = () => {
+    setTimeout(() => {
+      const data = document.querySelector("textarea").value;
+      setEntries(data);
+      const array = data.split("\n");
+      socket.emit("updateEntries", array);
+    }, 1000);
   };
 
   const clearListResult = () => {
@@ -100,7 +110,15 @@ const EntriesComponent = () => {
         aria-label="entries tabs"
         textColor="inherit"
       >
-        <Tab className="text-white" label={`Entries ${entryCount}`} />
+        <Tab
+          className="text-white"
+          sx={{
+            ".MuiButtonBase-root": {
+              color: "white",
+            },
+          }}
+          label={`Entries ${entryCount}`}
+        />
         <Tab className="text-white" label={`Result ${resultCount}`} />
       </Tabs>
       <Box

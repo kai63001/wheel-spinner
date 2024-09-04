@@ -39,3 +39,11 @@ main {
   font-weight: 500;
   font-style: normal;
 }
+
+.MuiButtonBase-root {
+  color: white !important;  
+}
+
+.MuiTab-root {
+  color: white !important;
+}
