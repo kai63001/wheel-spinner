@@ -79,7 +79,7 @@ const Spin = ({
     initData();
     wheelInit();
     fetchSegments();
-    startIdleSpin();
+    // startIdleSpin();
 
     audioRef.current = new Audio("/ding.mp3");
     audioEndRef.current = new Audio("/end.mp3");
