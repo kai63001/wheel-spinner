@@ -122,6 +122,20 @@ const Spin = ({
   };
 
   const initData = () => {
+    // check if has link.href font-family don't add
+    // if (document.getElementsByTagName("link")[0].href) {
+    //   return;
+    // }
+    const data = document.getElementsByTagName("link");
+    for (let i = 0; i < data.length; i++) {
+      if (
+        data[i].href ==
+        "https://fonts.googleapis.com/css?family=Quicksand&display=swap"
+      ) {
+        return;
+      }
+    }
+
     var link = document.createElement("link");
     link.rel = "stylesheet";
     link.type = "text/css";
