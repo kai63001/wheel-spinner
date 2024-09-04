@@ -124,7 +124,6 @@ const EntriesComponent = () => {
           <>
             <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
               <Button
-                disabled={spining}
                 variant="contained"
                 startIcon={<ShuffleIcon />}
                 onClick={shuffleEntries}
@@ -134,7 +133,6 @@ const EntriesComponent = () => {
                 Shuffle
               </Button>
               <Button
-                disabled={spining}
                 onClick={sortEntries}
                 variant="contained"
                 startIcon={<SortIcon />}
@@ -199,7 +197,6 @@ const EntriesComponent = () => {
           <>
             <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
               <Button
-                disabled={spining}
                 variant="contained"
                 startIcon={<SortIcon />}
                 onClick={sortResult}
@@ -210,7 +207,6 @@ const EntriesComponent = () => {
               </Button>
               <Button
                 variant="contained"
-                disabled={spining}
                 startIcon={<ClearIcon />}
                 onClick={clearListResult}
                 size="small"
