@@ -5,12 +5,8 @@ import { socket } from "../socker";
 import { controllerStore } from "../store/controllerStore";
 import WinnerPopup from "./Wining";
 
-const Spin = ({
-  primaryColor,
-  contrastColor,
-  isOnlyOnce = true,
-  fontFamily = "Quicksand",
-}) => {
+const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
+  const fontFamily = "Quicksand";
   const { setSpining, duration } = controllerStore();
   const [segments, setSegments] = useState([]);
   const audioRef = useRef(null);
@@ -24,6 +20,7 @@ const Spin = ({
   const idleIntervalRef = useRef(null);
   const [winningOrder, setWinningOrder] = useState([]);
   const [showWinnerPopup, setShowWinnerPopup] = useState(false);
+  const [fontLoaded, setFontLoaded] = useState(false);
 
   const [angleCurrent, setAngleCurrent] = useState(0);
   const size = 300;
@@ -68,7 +65,7 @@ const Spin = ({
       const availableWidth = size / 2 + 60;
       let fontSize = 60;
 
-      ctx.font = `bold ${fontSize}px ${fontFamily}`;
+      ctx.font = `bold ${fontSize}px ${fontFamily}, sans-serif`;
 
       const longestText = segments.reduce((a, b) =>
         a.length > b.length ? a : b
@@ -82,7 +79,7 @@ const Spin = ({
 
       while (textWidth > availableWidth && fontSize > 20) {
         fontSize--;
-        ctx.font = `bold ${fontSize}px ${fontFamily}`;
+        ctx.font = `bold ${fontSize}px ${fontFamily}, sans-serif`;
         textWidth = ctx.measureText(longestText).width;
       }
 
@@ -91,7 +88,7 @@ const Spin = ({
   };
 
   useEffect(() => {
-    initData();
+    
     wheelInit();
     fetchSegments();
     // startIdleSpin();
@@ -137,26 +134,15 @@ const Spin = ({
   };
 
   const initData = () => {
-    // check if has link.href font-family don't add
-    // if (document.getElementsByTagName("link")[0].href) {
-    //   return;
-    // }
-    const data = document.getElementsByTagName("link");
-    for (let i = 0; i < data.length; i++) {
-      if (
-        data[i].href ==
-        "https://fonts.googleapis.com/css?family=Quicksand&display=swap"
-      ) {
-        return;
-      }
-    }
-
-    var link = document.createElement("link");
+    const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.type = "text/css";
     link.href =
       "https://fonts.googleapis.com/css?family=Quicksand&display=swap";
-    document.getElementsByTagName("head")[0].appendChild(link);
+    document.head.appendChild(link);
+
+    link.onload = () => {
+      setFontLoaded(true);
+    };
   };
 
   useEffect(() => {
@@ -312,7 +298,7 @@ const Spin = ({
     ctx.fillStyle = ["#009925", "#EEB212"].includes(segColors[key])
       ? "black"
       : "white";
-    ctx.font = `bold ${globalFontSize}px ${fontFamily}`;
+    ctx.font = `bold ${globalFontSize}px ${fontFamily}, sans-serif`;
     //elipsis
     ctx.fillText(
       value.length > 15 ? value.substring(0, 13) + "..." : value,
