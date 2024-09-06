@@ -32,13 +32,28 @@ const Spin = ({
   const [globalFontSize, setGlobalFontSize] = useState(40);
 
   const playTickSound = () => {
+    const canPlay = audioRef.current.canPlayType("audio/mpeg");
+    if (canPlay === "") {
+      console.log("Browser cannot play this audio format.");
+      return;
+    }
+
     audioRef.current.currentTime = 0;
-    audioRef.current.play();
+    audioRef.current.play().catch((error) => {
+      console.error("Error playing audio", error);
+    });
   };
 
   const playEndSound = () => {
+    const canPlay = audioEndRef.current.canPlayType("audio/mpeg");
+    if (canPlay === "") {
+      console.log("Browser cannot play this audio format.");
+      return;
+    }
     audioEndRef.current.currentTime = 0;
-    audioEndRef.current.play();
+    audioEndRef.current.play().catch((error) => {
+      console.error("Error playing audio", error);
+    });
   };
 
   const getCurrentColorBySegment = (segment) => {
@@ -375,7 +390,7 @@ const Spin = ({
   }, [angleCurrent, currentSegment]);
 
   return (
-    <div id="wheel">
+    <div id="wheel" className="relative">
       <canvas
         ref={canvasRef}
         className="roboto-medium"
