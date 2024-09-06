@@ -23,6 +23,7 @@
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "styled-components": "^6.1.13",
+    "webfontloader": "^1.6.28",
     "zustand": "^4.5.5"
   },
   "devDependencies": {

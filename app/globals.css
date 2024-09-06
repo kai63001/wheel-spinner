@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -31,7 +32,7 @@ main {
 }
 
 #canvas {
-  font-family: var(--font-roboto-mono);
+  font-family: "Quicksand", sans-serif;
 }
 
 .roboto-medium {
