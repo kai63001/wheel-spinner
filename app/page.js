@@ -68,7 +68,7 @@ export default function Home() {
             />
           </div>
         </div>
-        <div className="lg:col-span-3 col-span-12">
+        <div className="lg:col-span-3 col-span-12 lg:mt-0 mt-20">
           <Controller />
         </div>
       </main>
