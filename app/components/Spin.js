@@ -17,7 +17,6 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
   const [isStarted, setIsStarted] = useState(false);
   const [isFinished, setFinished] = useState(false);
   const canvasRef = useRef(null);
-  const needleCanvasRef = useRef(null); // New ref for the needle canvas
   const idleIntervalRef = useRef(null);
   const [winningOrder, setWinningOrder] = useState([]);
   const [showWinnerPopup, setShowWinnerPopup] = useState(false);
@@ -292,42 +291,19 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
     return wining;
   };
 
-  const drawNeedle = () => {
-    const canvas = needleCanvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-  
-      // Set up the needle canvas
-      const scale = window.devicePixelRatio || 1;
-      canvas.width = 150 * scale; // Increased width to allow more space for the needle
-      canvas.height = size * 2 * scale; // Match the height of the wheel canvas
-      ctx.scale(scale, scale);
-  
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Adjust the translation to center the needle properly
-      ctx.translate(75, size); // Center horizontally within the new width
-  
-      // Rotate the needle 180 degrees to point it in the correct direction
-      ctx.save(); // Save the current state of the context
-      const rotationAngle = Math.PI; // 180 degrees rotation
-      ctx.rotate(rotationAngle); // Rotate the needle 180 degrees
-  
-      // Draw the needle
-      ctx.beginPath();
-      ctx.moveTo(0, -25); // Adjust start position for a proper look
-      ctx.lineTo(50, 0); // Extend further to make the needle fully visible
-      ctx.lineTo(0, 25); // Bottom of the needle
-      ctx.closePath();
-      ctx.fillStyle = "#BBBBBB";
-      ctx.fill();
-      ctx.strokeStyle = "black";
-      ctx.stroke();
-  
-      ctx.restore(); // Restore the context to the state before rotation
-    }
+  const drawNeedle = (ctx) => {
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "#BBBBBB";
+    ctx.strokeStyle = "black";
+
+    ctx.beginPath();
+    ctx.moveTo(centerX + size - 20, centerY);
+    ctx.lineTo(centerX + size + 20, centerY - 20);
+    ctx.lineTo(centerX + size + 20, centerY + 20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
   };
-  
 
   const draw = () => {
     const canvas = canvasRef.current;
@@ -375,15 +351,6 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
         style={{
           pointerEvents: isFinished && isOnlyOnce ? "none" : "auto",
           width: "100%",
-        }}
-      />
-      <canvas
-        ref={needleCanvasRef}
-        className="needle-canvas -right-12"
-        style={{
-          position: "absolute",
-          top: "50%",
-          transform: "translateY(-50%)",
         }}
       />
       <WinnerPopup
