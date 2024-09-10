@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap");
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -17,7 +17,8 @@
   }
 }
 
-html, body {
+html,
+body {
   height: 100%;
   background-color: #121212;
 }
@@ -42,9 +43,14 @@ main {
 }
 
 .MuiButtonBase-root {
-  color: white !important;  
+  color: white !important;
 }
 
 .MuiTab-root {
   color: white !important;
+}
+
+textarea[disabled] {
+  color: white;
+  -webkit-text-fill-color: white !important;
 }

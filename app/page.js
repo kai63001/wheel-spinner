@@ -55,9 +55,9 @@ export default function Home() {
         <Navbar />
       </header>
       <main className="grid grid-cols-12 gap-4">
-        <div className="lg:col-span-3 col-span-1"></div>
-        <div className="lg:col-span-6 col-span-11 ml-4 lg:ml-0">
-          <div id="wheelCircle" className="roboto-medium ">
+        <div className="lg:col-span-3 col-span-0"></div>
+        <div className="lg:col-span-6 col-span-12 ml-4 lg:ml-0">
+          <div id="wheelCircle" className="roboto-medium px-10 lg:px-0">
             <Spin
               primaryColor="white"
               primaryColoraround="#ffffffb4"

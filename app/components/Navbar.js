@@ -93,7 +93,7 @@ const Navbar = () => {
             width={39}
             height={39}
             alt="logo"
-            className="rounded-full"
+            className="rounded-full hidden lg:block"
           />
           <p>wheelofnames.com</p>
         </button>

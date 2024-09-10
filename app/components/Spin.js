@@ -26,7 +26,7 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
   const size = 300; // Logical size, not physical
   const centerX = size;
   const centerY = size;
-  const [globalFontSize, setGlobalFontSize] = useState(40);
+  const [globalFontSize, setGlobalFontSize] = useState(60);
 
   const playTickSound = () => {
     const canPlay = audioRef.current.canPlayType("audio/mpeg");
@@ -56,27 +56,28 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
     const canvas = canvasRef.current;
     if (canvas && segments.length > 0) {
       const ctx = canvas.getContext("2d");
-      const availableWidth = size / 2 + 60;
-      let fontSize = 60;
-
-      ctx.font = `bold ${fontSize}px ${fontFamily}, sans-serif`;
-
+      
+      // Adjust availableWidth based on number of segments
+      const baseWidth = size / 2;
+      const segmentAdjustment = Math.min(40, 50 * (segments.length / 8));
+      const availableWidth = baseWidth + segmentAdjustment;
+  
+      let fontSize = 150;
+      ctx.font = `${fontSize}px ${fontFamily}, sans-serif`;
       const longestText = segments.reduce((a, b) =>
         a.length > b.length ? a : b
       );
-
       let textWidth = ctx.measureText(longestText).width;
-
+  
       // Adjust font size based on number of segments
-      const segmentAdjustment = Math.max(1, Math.log2(segments.length) * 0.5);
-      fontSize = Math.min(fontSize, fontSize / segmentAdjustment);
-
+      const fontSizeAdjustment = Math.max(1, Math.log2(segments.length) * 0.5);
+      fontSize = Math.min(fontSize, fontSize / fontSizeAdjustment);
+  
       while (textWidth > availableWidth && fontSize > 20) {
         fontSize--;
-        ctx.font = `bold ${fontSize}px ${fontFamily}, sans-serif`;
+        ctx.font = `${fontSize}px ${fontFamily}, sans-serif`;
         textWidth = ctx.measureText(longestText).width;
       }
-
       setGlobalFontSize(Math.floor(fontSize));
     }
   };
@@ -236,9 +237,9 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
     ctx.fillStyle = ["#009925", "#EEB212"].includes(segColors[key])
       ? "black"
       : "white";
-    ctx.font = `bold ${globalFontSize}px ${fontFamily}, sans-serif`;
+    ctx.font = ` ${globalFontSize}px ${fontFamily}, sans-serif`;
     ctx.fillText(
-      value.length > 15 ? value.substring(0, 13) + "..." : value,
+      value.length > 23 ? value.substring(0, 20) + "..." : value,
       size / 2 + 135,
       0
     );

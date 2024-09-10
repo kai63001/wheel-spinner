@@ -7,11 +7,16 @@ import {
   MenuItem,
   Tabs,
   Tab,
+  Input,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import {
   Shuffle as ShuffleIcon,
   Sort as SortIcon,
   Clear as ClearIcon,
+  CheckBox,
 } from "@mui/icons-material";
 import { socket } from "../socker";
 import { controllerStore } from "../store/controllerStore";
@@ -104,27 +109,52 @@ const EntriesComponent = () => {
 
   return (
     <div className="mr-0 px-5 lg:px-0 lg:mr-5 rounded-md h-full min-h-[500px] -mt-20 lg:-mt-0">
-      <Tabs
-        value={tabValue}
-        onChange={handleTabChange}
-        aria-label="entries tabs"
-        textColor="inherit"
-      >
-        <Tab
-          className="text-white"
-          sx={{
-            ".MuiButtonBase-root": {
-              color: "white",
-            },
-          }}
-          label={`Entries ${entryCount}`}
-        />
-        <Tab className="text-white" label={`Result ${resultCount}`} />
-      </Tabs>
+      <div className="flex justify-between w-full text-white items-end">
+        <Tabs aria-label="entries tabs" textColor="inherit">
+          <div className="flex -mb-12 border-gray-700">
+            {[
+              {
+                label: "Entries",
+                id: 0,
+              },
+              {
+                label: "Result",
+                id: 1,
+              },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                className={`py-1 px-4 flex items-center space-x-2 ${
+                  tabValue === tab.id
+                    ? "text-white border-b-2 border-white"
+                    : "text-gray-400"
+                }`}
+                onClick={() => setTabValue(tab.id)}
+              >
+                <div>{tab.label}</div>
+                <div className="w-5 h-5 items-center m-auto flex text-center justify-center text-[10px] rounded-full bg-[#757575]">
+                  {tab.label === "Entries" ? entryCount : resultCount}
+                </div>
+              </button>
+            ))}
+          </div>
+        </Tabs>
+        <div>
+          {/* check box label Hide */}
+          <FormGroup>
+            <FormControlLabel
+              control={<Checkbox size="small" checked={false} />}
+              label="Hide"
+              className="text-sm"
+              sx={{ fontSize: "10px", "& span": { fontSize: "13px" } }}
+            />
+          </FormGroup>
+        </div>
+      </div>
       <Box
         sx={{
           margin: "auto",
-          bgcolor: "grey.900",
+          bgcolor: "#1d1d1d",
           color: "white",
           borderRadius: 1,
           p: 2,
@@ -140,13 +170,13 @@ const EntriesComponent = () => {
 
         {tabValue === 0 && (
           <>
-            <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+            <Box sx={{ display: "flex", gap: 1, mb: 2, background: "#1d1d1d" }}>
               <Button
                 variant="contained"
                 startIcon={<ShuffleIcon />}
                 onClick={shuffleEntries}
                 size="small"
-                sx={{ bgcolor: "grey.800", color: "white" }}
+                sx={{ bgcolor: "grey.800", color: "white", fontSize: "10px" }}
               >
                 Shuffle
               </Button>
@@ -155,7 +185,7 @@ const EntriesComponent = () => {
                 variant="contained"
                 startIcon={<SortIcon />}
                 size="small"
-                sx={{ bgcolor: "grey.800", color: "white" }}
+                sx={{ bgcolor: "grey.800", color: "white", fontSize: "10px" }}
               >
                 Sort
               </Button>
@@ -175,7 +205,7 @@ const EntriesComponent = () => {
                 },
                 "& .MuiOutlinedInput-root": {
                   color: "white",
-                  backgroundColor: "#333333",
+                  backgroundColor: "#1d1d1d",
                   height: "100%",
                   "& fieldset": {
                     borderColor: "#444444",
@@ -185,6 +215,14 @@ const EntriesComponent = () => {
                   },
                   "&.Mui-focused fieldset": {
                     borderColor: "#666666",
+                  },
+                  "&.Mui-disabled": {
+                    "& .MuiOutlinedInput-input": {
+                      color: "white", // Text color when disabled
+                    },
+                    "& fieldset": {
+                      borderColor: "#444444", // Border color when disabled
+                    },
                   },
                   "& textarea": {
                     height: "100% !important",
@@ -202,9 +240,6 @@ const EntriesComponent = () => {
                     background: "#888888",
                     borderRadius: "5px",
                   },
-                  "&::-webkit-scrollbar-thumb:hover": {
-                    background: "#555555",
-                  },
                 },
               }}
             />
@@ -219,7 +254,7 @@ const EntriesComponent = () => {
                 startIcon={<SortIcon />}
                 onClick={sortResult}
                 size="small"
-                sx={{ bgcolor: "grey.800", color: "white" }}
+                sx={{ bgcolor: "grey.800", color: "white", fontSize: "10px" }}
               >
                 Sort
               </Button>
@@ -228,7 +263,7 @@ const EntriesComponent = () => {
                 startIcon={<ClearIcon />}
                 onClick={clearListResult}
                 size="small"
-                sx={{ bgcolor: "grey.800", color: "white" }}
+                sx={{ bgcolor: "grey.800", color: "white", fontSize: "10px" }}
               >
                 Clear the list
               </Button>
@@ -247,7 +282,7 @@ const EntriesComponent = () => {
                 },
                 "& .MuiOutlinedInput-root": {
                   color: "white",
-                  backgroundColor: "#333333",
+                  backgroundColor: "#1d1d1d",
                   height: "100%",
                   "& fieldset": {
                     borderColor: "#444444",
@@ -257,6 +292,14 @@ const EntriesComponent = () => {
                   },
                   "&.Mui-focused fieldset": {
                     borderColor: "#666666",
+                  },
+                  "&.Mui-disabled": {
+                    "& .MuiOutlinedInput-input": {
+                      color: "white", // Text color when disabled
+                    },
+                    "& fieldset": {
+                      borderColor: "#444444", // Border color when disabled
+                    },
                   },
                   "& textarea": {
                     height: "100% !important",
@@ -273,9 +316,6 @@ const EntriesComponent = () => {
                   "&::-webkit-scrollbar-thumb": {
                     background: "#888888",
                     borderRadius: "5px",
-                  },
-                  "&::-webkit-scrollbar-thumb:hover": {
-                    background: "#555555",
                   },
                 },
               }}
