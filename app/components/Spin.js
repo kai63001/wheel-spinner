@@ -16,7 +16,8 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
   const [currentSegment, setCurrentSegment] = useState("");
   const [isStarted, setIsStarted] = useState(false);
   const [isFinished, setFinished] = useState(false);
-  const canvasRef = useRef(null);
+  const wheelCanvasRef = useRef(null);
+  const needleCanvasRef = useRef(null);
   const idleIntervalRef = useRef(null);
   const [winningOrder, setWinningOrder] = useState([]);
   const [showWinnerPopup, setShowWinnerPopup] = useState(false);
@@ -53,7 +54,7 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
   };
 
   const calculateGlobalFontSize = () => {
-    const canvas = canvasRef.current;
+    const canvas = wheelCanvasRef.current;
     if (canvas && segments.length > 0) {
       const ctx = canvas.getContext("2d");
       
@@ -62,7 +63,7 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
       const segmentAdjustment = Math.min(40, 50 * (segments.length / 8));
       const availableWidth = baseWidth + segmentAdjustment;
   
-      let fontSize = 150;
+      let fontSize = 130;
       ctx.font = `${fontSize}px ${fontFamily}, sans-serif`;
       const longestText = segments.reduce((a, b) =>
         a.length > b.length ? a : b
@@ -275,6 +276,7 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
     const index = segments.indexOf(segment);
     return segColors[index];
   };
+
   const winingOrderList = () => {
     if (winningOrder.length == 0) {
       return null;
@@ -298,28 +300,35 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
     ctx.strokeStyle = "black";
 
     ctx.beginPath();
-    ctx.moveTo(centerX + size - 20, centerY);
-    ctx.lineTo(centerX + size + 20, centerY - 20);
-    ctx.lineTo(centerX + size + 20, centerY + 20);
+    ctx.moveTo(centerX + size - 30, centerY);
+    ctx.lineTo(centerX + size + 30, centerY - 30);
+    ctx.lineTo(centerX + size + 30, centerY + 30);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
   };
 
   const draw = () => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const wheelCanvas = wheelCanvasRef.current;
+    const needleCanvas = needleCanvasRef.current;
+    if (wheelCanvas && needleCanvas) {
+      const wheelCtx = wheelCanvas.getContext("2d");
+      const needleCtx = needleCanvas.getContext("2d");
 
       // Set canvas scale for high DPI screens
       const scale = window.devicePixelRatio || 1;
-      canvas.width = size * 2 * scale;
-      canvas.height = size * 2 * scale;
-      ctx.scale(scale, scale);
+      wheelCanvas.width = size * 2 * scale;
+      wheelCanvas.height = size * 2 * scale;
+      needleCanvas.width = size * 2 * scale;
+      needleCanvas.height = size * 2 * scale;
+      wheelCtx.scale(scale, scale);
+      needleCtx.scale(scale, scale);
 
-      drawWheel(ctx);
-      drawNeedle(ctx);
+      wheelCtx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+      needleCtx.clearRect(0, 0, needleCanvas.width, needleCanvas.height);
+
+      drawWheel(wheelCtx);
+      drawNeedle(needleCtx);
     }
   };
 
@@ -341,16 +350,26 @@ const Spin = ({ primaryColor, contrastColor, isOnlyOnce = true }) => {
   }, [angleCurrent, currentSegment]);
 
   return (
-    <div id="wheel" className="relative">
+    <div id="wheel" className="relative lg:p-7 p-0 lg:ml-0 ml-10">
       <canvas
-        ref={canvasRef}
+        ref={wheelCanvasRef}
         className="roboto-medium pr-10"
         id="canvas"
-        width="700"
-        height="700"
+        width={size * 2}
+        height={size * 2}
         onClick={spinWheel}
         style={{
           pointerEvents: isFinished && isOnlyOnce ? "none" : "auto",
+          width: "100%",
+        }}
+      />
+      <canvas
+        ref={needleCanvasRef}
+        className="absolute top-0 left-0 -mt-[20px] lg:-ml-[3%] -ml-[3%]"
+        width={size * 2}
+        height={size * 2}
+        style={{
+          pointerEvents: "none",
           width: "100%",
         }}
       />
