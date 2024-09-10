@@ -17,6 +17,8 @@ import {
   Sort as SortIcon,
   Clear as ClearIcon,
   CheckBox,
+  Image as ImageIcon,
+  ArrowDropDown as Drop,
 } from "@mui/icons-material";
 import { socket } from "../socker";
 import { controllerStore } from "../store/controllerStore";
@@ -176,7 +178,12 @@ const EntriesComponent = () => {
                 startIcon={<ShuffleIcon />}
                 onClick={shuffleEntries}
                 size="small"
-                sx={{ bgcolor: "grey.800", color: "white", fontSize: "10px" }}
+                sx={{
+                  bgcolor: "grey.800",
+                  color: "white",
+                  fontSize: "10px",
+                  textTransform: "none",
+                }}
               >
                 Shuffle
               </Button>
@@ -185,10 +192,41 @@ const EntriesComponent = () => {
                 variant="contained"
                 startIcon={<SortIcon />}
                 size="small"
-                sx={{ bgcolor: "grey.800", color: "white", fontSize: "10px" }}
+                sx={{
+                  bgcolor: "grey.800",
+                  color: "white",
+                  fontSize: "10px",
+                  textTransform: "none",
+                }}
               >
                 Sort
               </Button>
+
+              <Button
+                onClick={sortEntries}
+                variant="contained"
+                startIcon={<ImageIcon />}
+                endIcon={<Drop />}
+                size="small"
+                sx={{
+                  bgcolor: "grey.800",
+                  color: "white",
+                  fontSize: "10px",
+                  textTransform: "none",
+                }}
+              >
+                Add image
+              </Button>
+
+              {/* check box Advance */}
+              <FormGroup className="h-3 -mt-1.5 ml-2">
+                <FormControlLabel
+                  control={<Checkbox size="small" checked={false} />}
+                  label="Advanced"
+                  className="text-sm"
+                  sx={{ fontSize: "10px", "& span": { fontSize: "11px" } }}
+                />
+              </FormGroup>
             </Box>
 
             <TextField
@@ -254,7 +292,12 @@ const EntriesComponent = () => {
                 startIcon={<SortIcon />}
                 onClick={sortResult}
                 size="small"
-                sx={{ bgcolor: "grey.800", color: "white", fontSize: "10px" }}
+                sx={{
+                  bgcolor: "grey.800",
+                  color: "white",
+                  fontSize: "10px",
+                  textTransform: "none",
+                }}
               >
                 Sort
               </Button>
@@ -263,7 +306,12 @@ const EntriesComponent = () => {
                 startIcon={<ClearIcon />}
                 onClick={clearListResult}
                 size="small"
-                sx={{ bgcolor: "grey.800", color: "white", fontSize: "10px" }}
+                sx={{
+                  bgcolor: "grey.800",
+                  color: "white",
+                  fontSize: "10px",
+                  textTransform: "none",
+                }}
               >
                 Clear the list
               </Button>
