@@ -31,31 +31,31 @@ function valuetext(value) {
 const marks = [
   {
     value: 1,
-    label: "1s",
+    label: "1",
   },
   {
     value: 10,
-    label: "10s",
+    label: "10",
   },
   {
     value: 20,
-    label: "20s",
+    label: "20",
   },
   {
     value: 30,
-    label: "30s",
+    label: "30",
   },
   {
     value: 40,
-    label: "40s",
+    label: "40",
   },
   {
     value: 50,
-    label: "50s",
+    label: "50",
   },
   {
     value: 60,
-    label: "60s",
+    label: "60",
   },
 ];
 
@@ -184,7 +184,9 @@ const CustomizeModal = ({
                       <div
                         key={index}
                         className={`text-sm px-5 py-3 border-b-2  cursor-pointer hover:bg-[#3c3c3c] duration-300 ${
-                          value === item.value ? " border-white" : "border-transparent"
+                          value === item.value
+                            ? " border-white"
+                            : "border-transparent"
                         }`}
                       >
                         <p>{item.label}</p>
@@ -251,7 +253,11 @@ const CustomizeModal = ({
                   <Box sx={{ mt: 2 }} className="flex">
                     <div className="flex">
                       <FormControlLabel
-                        control={<Checkbox checked={true} />}
+                        control={<Checkbox checked={true} sx={{
+                          "& .MuiSvgIcon-root": {
+                            color: "#326DEA",
+                          }
+                        }} />}
                         label="Display duplicates"
                       />
                       <Tooltip title="" className="-ml-5">
@@ -261,11 +267,15 @@ const CustomizeModal = ({
                       </Tooltip>
                     </div>
                     <FormControlLabel
-                      control={<Checkbox checked={false} />}
+                      control={<Checkbox checked={false}  />}
                       label="Spin slowly"
                     />
                     <FormControlLabel
-                      control={<Checkbox checked={true} />}
+                      control={<Checkbox checked={true} sx={{
+                        "& .MuiSvgIcon-root": {
+                          color: "#326DEA",
+                        }
+                      }} />}
                       label="Show title"
                     />
                   </Box>
@@ -283,6 +293,13 @@ const CustomizeModal = ({
                       onChange={(e, value) => {
                         setSliderData(value);
                       }}
+                      sx={{
+                        "& .MuiSlider-valueLabel": {
+                          background: "#326DEA",
+                          borderRadius: "10px",
+                          padding: "5px 10px",
+                        },
+                      }}
                       min={1}
                       max={60}
                     />
@@ -297,7 +314,7 @@ const CustomizeModal = ({
                   </Typography>
                   <Slider
                     size="medium"
-                    defaultValue={500}
+                    defaultValue={1000}
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={1}
