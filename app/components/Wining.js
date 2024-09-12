@@ -11,7 +11,7 @@ const WinnerPopup = ({ color, winner, onClose, onRemove, isVisible }) => {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 -mt-[210px]"
         >
           <motion.div
             onClick={(e) => e.stopPropagation()}
@@ -33,7 +33,7 @@ const WinnerPopup = ({ color, winner, onClose, onRemove, isVisible }) => {
               </button>
             </div>
             <div className="bg-[#1D1D1D] rounded-b-lg shadow-lg p-6 w-full">
-              <div className="text-white text-4xl mb-6">{winner}</div>
+              <div className="text-white text-6xl font-light mb-6">{winner}</div>
               <div className="flex justify-end">
                 <button
                   onClick={onClose}
