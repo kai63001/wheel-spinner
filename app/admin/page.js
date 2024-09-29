@@ -163,7 +163,7 @@ const WheelCheatAdmin = () => {
       <CssBaseline />
       <Container maxWidth="md" className="p-4">
         <Typography variant="h4" className="mb-4">
-          Wheel Cheat Admin
+          Wheel Admin
         </Typography>
 
         <FormControlLabel
