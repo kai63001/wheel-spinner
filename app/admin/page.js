@@ -54,7 +54,7 @@ const WheelPasswordAlert = ({
       <CssBaseline />
       <Container maxWidth="md" className="p-4">
         <Typography variant="h4" className="mb-4">
-          Wheel Cheat Admin
+          Wheel Admin
         </Typography>
 
         <Typography variant="h6" className="mb-4">
@@ -95,7 +95,7 @@ const WheelCheatAdmin = () => {
   const [cheatEnabled, setCheatEnabled] = useState(false);
 
   const checkPassword = () => {
-    const passwordAdmin = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "@dmin";
+    const passwordAdmin = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "Dx_156";
     if (passwordData === passwordAdmin) {
       setIsAdmin(true);
     }
