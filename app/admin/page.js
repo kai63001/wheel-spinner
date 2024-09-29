@@ -248,7 +248,7 @@ const WheelCheatAdmin = () => {
 
         {open && (
           <Alert icon={<CheckIcon fontSize="inherit" />} severity="success">
-            Update Cheat Successful
+            Update Successful
           </Alert>
         )}
       </Container>
